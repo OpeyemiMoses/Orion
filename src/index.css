@@ -321,6 +321,53 @@ body {
 @keyframes spin { to { transform: rotate(360deg); } }
 .spin { animation: spin 0.8s linear infinite; }
 
+/* ── Ambient Floating Animations ─────────── */
+@keyframes float-gentle-1 {
+  0%, 100% { transform: translateY(0px) rotate(0deg); }
+  50%       { transform: translateY(-14px) rotate(1.2deg); }
+}
+@keyframes float-gentle-2 {
+  0%, 100% { transform: translateY(0px) rotate(0deg); }
+  50%       { transform: translateY(12px) rotate(-1.5deg); }
+}
+@keyframes pulse-glow {
+  0%, 100% { filter: drop-shadow(0 0 15px rgba(0, 82, 255, 0.25)); }
+  50%       { filter: drop-shadow(0 0 35px rgba(0, 82, 255, 0.45)); }
+}
+
+.floating-beam-primary {
+  animation: float-gentle-1 8s ease-in-out infinite, pulse-glow 6s ease-in-out infinite;
+}
+
+.floating-beam-secondary {
+  animation: float-gentle-2 10s ease-in-out infinite;
+}
+
+/* ── Background Side Watermark ────────────── */
+.side-watermark {
+  position: fixed;
+  right: -50px;
+  top: 40%;
+  transform: translateY(-50%);
+  width: min(520px, 42vw);
+  opacity: 0.04;
+  pointer-events: none;
+  z-index: 0;
+  user-select: none;
+  transition: opacity 0.3s ease;
+}
+
+.side-watermark-left {
+  position: fixed;
+  left: -80px;
+  bottom: 5%;
+  width: min(380px, 35vw);
+  opacity: 0.03;
+  pointer-events: none;
+  z-index: 0;
+  user-select: none;
+}
+
 /* ── Responsive Mobile & Tablet Design ─────────────────── */
 @media (max-width: 900px) {
   .hero-grid {
