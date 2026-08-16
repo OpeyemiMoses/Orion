@@ -1,0 +1,15 @@
+services:
+  - type: web
+    name: orion-sentinel-backend
+    runtime: node
+    buildCommand: npm install
+    startCommand: node server/index.js
+    envVars:
+      - key: PORT
+        value: 3001
+      - key: NODE_ENV
+        value: production
+      - key: BASESCAN_API_KEY
+        sync: false   # set manually in Render dashboard
+      - key: BASE_RPC_URL
+        sync: false   # set manually in Render dashboard
