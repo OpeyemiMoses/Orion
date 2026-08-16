@@ -54,18 +54,24 @@ const TOKENS = {
   WETH:   '0x4200000000000000000000000000000000000006',
 };
 
-// ── Multi-Endpoint RPC Pool with Automatic Fallback ──────────────────────────
+// ── Multi-Endpoint CORS-Enabled RPC Pool ─────────────────────────────────────
 const RPC_POOL = [
   BASE_RPC,
   'https://mainnet.base.org',
-  'https://base.llamarpc.com',
+  'https://base.publicnode.com',
   'https://1rpc.io/base',
-  'https://base.drpc.org',
 ].filter(Boolean);
 
 let workingRpcIndex = 0;
+const rpcCache = new Map();
 
 async function rpc(method, params) {
+  const cacheKey = `${method}:${JSON.stringify(params)}`;
+  const cached = rpcCache.get(cacheKey);
+  if (cached && Date.now() - cached.time < 12000) {
+    return cached.val;
+  }
+
   const pool = [
     RPC_POOL[workingRpcIndex],
     ...RPC_POOL.filter((_, idx) => idx !== workingRpcIndex)
@@ -93,13 +99,14 @@ async function rpc(method, params) {
       const actualIndex = RPC_POOL.indexOf(endpoint);
       if (actualIndex !== -1) workingRpcIndex = actualIndex;
 
+      rpcCache.set(cacheKey, { val: json.result, time: Date.now() });
       return json.result;
     } catch {
       continue;
     }
   }
 
-  throw new Error(`All Base RPC endpoints failed for ${method}`);
+  return null;
 }
 
 async function call(to, data) {

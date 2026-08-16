@@ -3,10 +3,9 @@
 
 const RPC_ENDPOINTS = [
   import.meta.env.VITE_BASE_RPC_URL,
-  'https://base.llamarpc.com',
   'https://mainnet.base.org',
+  'https://base.publicnode.com',
   'https://1rpc.io/base',
-  'https://base-mainnet.public.blastapi.io',
 ].filter(Boolean);
 
 const BASESCAN_API = 'https://api.basescan.org/api';

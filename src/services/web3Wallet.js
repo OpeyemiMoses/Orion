@@ -29,18 +29,24 @@ const KNOWN_SPENDERS = {
   '0x8c1a3cf8f83074169fe5d7ad50b978e1cdda1efa': { name: 'Compound V3 Base',     risk: 'Low',    verified: true },
 };
 
-// ── Multi-Endpoint RPC Pool with Automatic Fallback ──────────────────────────
+// ── Multi-Endpoint CORS-Enabled RPC Pool ─────────────────────────────────────
 const RPC_POOL = [
   BASE_RPC,
   'https://mainnet.base.org',
-  'https://base.llamarpc.com',
+  'https://base.publicnode.com',
   'https://1rpc.io/base',
-  'https://base.drpc.org',
 ].filter(Boolean);
 
 let workingRpcIndex = 0;
+const rpcCache = new Map();
 
 async function rpc(method, params) {
+  const cacheKey = `${method}:${JSON.stringify(params)}`;
+  const cached = rpcCache.get(cacheKey);
+  if (cached && Date.now() - cached.time < 12000) {
+    return cached.val;
+  }
+
   const pool = [
     RPC_POOL[workingRpcIndex],
     ...RPC_POOL.filter((_, idx) => idx !== workingRpcIndex)
@@ -60,28 +66,23 @@ async function rpc(method, params) {
       });
       clearTimeout(timeoutId);
 
-      if (!res.ok) {
-        // Bad status (e.g. 400, 401 from invalid API key) — try next RPC
-        continue;
-      }
+      if (!res.ok) continue;
 
       const json = await res.json();
-      if (json.error) {
-        continue;
-      }
+      if (json.error) continue;
 
-      // Remember working endpoint
       const actualIndex = RPC_POOL.indexOf(endpoint);
       if (actualIndex !== -1) workingRpcIndex = actualIndex;
 
+      rpcCache.set(cacheKey, { val: json.result, time: Date.now() });
       return json.result;
     } catch {
-      // Network/timeout error — try next RPC in pool
       continue;
     }
   }
 
-  throw new Error(`All Base RPC endpoints failed for ${method}`);
+  // If all public RPCs are busy, return safe empty/null instead of crashing
+  return null;
 }
 
 // ── Read ETH balance (real) ──────────────────────────────────────────────────
