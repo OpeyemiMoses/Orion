@@ -133,34 +133,18 @@ export default function LandingPage({ onLaunchApp, openWalletModal }) {
       <div className="divider" />
 
       {/* ── THREE MODULES ──────────────────────────────────── */}
-      <section style={{ padding: 'clamp(40px, 6vw, 72px) 0', position: 'relative' }}>
-        {/* Ambient floating beam accent in background */}
-        <div
-          className="floating-beam-secondary"
-          style={{
-            position: 'absolute',
-            right: '-40px',
-            top: '20px',
-            width: '260px',
-            opacity: 0.25,
-            pointerEvents: 'none',
-            zIndex: 0
-          }}
-        >
-          <img src="/orion-beam.png" alt="" style={{ width: '100%', height: 'auto' }} />
-        </div>
-
-        <p style={{ fontSize: '11px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.1em', color: 'var(--text-dim)', marginBottom: '12px', position: 'relative', zIndex: 1 }}>
+      <section style={{ padding: 'clamp(40px, 6vw, 72px) 0' }}>
+        <p style={{ fontSize: '11px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.1em', color: 'var(--text-dim)', marginBottom: '12px' }}>
           Three autonomous modules
         </p>
-        <h2 style={{ fontFamily: 'var(--font-display)', fontSize: 'clamp(1.6rem, 2.5vw, 2rem)', fontWeight: 400, marginBottom: '8px', letterSpacing: '-0.01em', position: 'relative', zIndex: 1 }}>
+        <h2 style={{ fontFamily: 'var(--font-display)', fontSize: 'clamp(1.6rem, 2.5vw, 2rem)', fontWeight: 400, marginBottom: '8px', letterSpacing: '-0.01em' }}>
           Every dimension of DeFi risk, covered.
         </h2>
-        <p style={{ fontSize: '14px', color: 'var(--text-muted)', lineHeight: 1.65, marginBottom: '40px', maxWidth: '480px', position: 'relative', zIndex: 1 }}>
+        <p style={{ fontSize: '14px', color: 'var(--text-muted)', lineHeight: 1.65, marginBottom: '40px', maxWidth: '480px' }}>
           Real on-chain reads from Moonwell, Compound III, Aave V3, Seamless, and DeFi Llama. Every decision derived from verifiable data.
         </p>
 
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '1px', background: 'var(--border)', border: '1px solid var(--border)', borderRadius: '14px', overflow: 'hidden', position: 'relative', zIndex: 1 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '1px', background: 'var(--border)', border: '1px solid var(--border)', borderRadius: '14px', overflow: 'hidden' }}>
           {[
             {
               icon: ShieldAlert,
