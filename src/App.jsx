@@ -95,6 +95,7 @@ export default function App() {
           <Dashboard
             wallet={wallet}
             openWalletModal={() => setIsWalletModalOpen(true)}
+            setCurrentView={setCurrentView}
           />
         )}
       </main>

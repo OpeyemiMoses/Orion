@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import {
   Search, ExternalLink, AlertTriangle, CheckCircle2, Loader,
-  ShieldAlert, Database, Code2, Globe, GitBranch, AtSign
+  ShieldAlert, Database, Code2, Globe, GitBranch, AtSign, ArrowLeft
 } from 'lucide-react';
 import { auditProtocol, KNOWN_BASE_PROTOCOLS } from '../services/protocolAudit';
 
@@ -202,19 +202,37 @@ export default function ProtocolAuditor() {
 
       {/* ── Standard wallet result ───────────────────────────── */}
       {r?.isEOA && (
-        <div className="card" style={{ padding: '24px', maxWidth: '560px' }}>
-          <div style={{ fontWeight: 600, marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <AlertTriangle size={16} style={{ color: 'var(--accent-red)' }} /> Personal Wallet Address
+        <div style={{ maxWidth: '560px' }}>
+          <button
+            onClick={() => { setResult(null); setInputAddr(''); }}
+            className="btn btn-outline"
+            style={{ marginBottom: '16px', gap: '6px', fontSize: '12px' }}
+          >
+            <ArrowLeft size={13} /> Back to featured protocols
+          </button>
+          <div className="card" style={{ padding: '24px' }}>
+            <div style={{ fontWeight: 600, marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <AlertTriangle size={16} style={{ color: 'var(--accent-red)' }} /> Personal Wallet Address
+            </div>
+            <p style={{ fontSize: '13px', color: 'var(--text-muted)' }}>
+              <span className="addr">{r.address}</span> is a personal wallet account, not a protocol smart contract on Base.
+            </p>
           </div>
-          <p style={{ fontSize: '13px', color: 'var(--text-muted)' }}>
-            <span className="addr">{r.address}</span> is a personal wallet account, not a protocol smart contract on Base.
-          </p>
         </div>
       )}
 
       {/* ── Full audit report ────────────────────────────────── */}
       {r && !r.isEOA && (
         <div>
+          {/* Back button */}
+          <button
+            onClick={() => { setResult(null); setInputAddr(''); }}
+            className="btn btn-outline"
+            style={{ marginBottom: '16px', gap: '6px', fontSize: '12px' }}
+          >
+            <ArrowLeft size={13} /> Back to featured protocols
+          </button>
+
           {/* Protocol identity header */}
           <div style={{ marginBottom: '20px' }}>
             <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '16px', flexWrap: 'wrap' }}>
