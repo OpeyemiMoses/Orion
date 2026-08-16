@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { X, RefreshCw, Loader, CheckCircle2 } from 'lucide-react';
+import { X, RefreshCw, Loader, CheckCircle2, AlertTriangle, ExternalLink } from 'lucide-react';
 import { connectWeb3Wallet, getDemoWallet } from '../services/web3Wallet';
 import { getDiscoveredWallets } from '../services/walletProviders';
 
@@ -227,7 +227,10 @@ export default function WalletConnectModal({ isOpen, onClose, wallet, setWallet 
 
             {errorMsg && (
               <div style={{ margin: '0 20px 10px', padding: '10px 14px', borderRadius: '8px', background: '#fef2f2', border: '1px solid #fecaca', fontSize: '12px', color: '#b91c1c', lineHeight: 1.5, display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                <div>⚠️ {errorMsg.text || errorMsg}</div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  <AlertTriangle size={13} style={{ flexShrink: 0 }} />
+                  <span>{errorMsg.text || errorMsg}</span>
+                </div>
                 {errorMsg.link && (
                   <a
                     href={errorMsg.link}
@@ -235,7 +238,8 @@ export default function WalletConnectModal({ isOpen, onClose, wallet, setWallet 
                     rel="noreferrer"
                     style={{ color: '#dc2626', fontWeight: 600, textDecoration: 'underline', marginTop: '2px', display: 'inline-flex', alignItems: 'center', gap: '4px' }}
                   >
-                    {errorMsg.label || 'Download wallet'} ↗
+                    <span>{errorMsg.label || 'Download wallet'}</span>
+                    <ExternalLink size={11} />
                   </a>
                 )}
               </div>

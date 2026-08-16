@@ -1,10 +1,10 @@
 # Contributing to OrionSentinel
 
-Thank you for your interest in contributing to **OrionSentinel**! We welcome contributions from developers, researchers, and DeFi enthusiasts.
+Thank you for your interest in contributing to **OrionSentinel**! We welcome contributions from developers, researchers, and DeFi builders.
 
 ---
 
-## 🛠️ Development Setup
+## Development Setup
 
 1. **Fork and Clone the Repository:**
    ```bash
@@ -29,7 +29,7 @@ Thank you for your interest in contributing to **OrionSentinel**! We welcome con
 
 ---
 
-## 🌿 Branching & Development Workflow
+## Branching and Development Workflow
 
 1. Create a feature branch from `main`:
    ```bash
@@ -50,7 +50,7 @@ Thank you for your interest in contributing to **OrionSentinel**! We welcome con
 
 ---
 
-## 📝 Commit Conventions
+## Commit Conventions
 
 We follow the [Conventional Commits](https://www.conventionalcommits.org/) specification:
 
@@ -63,7 +63,7 @@ We follow the [Conventional Commits](https://www.conventionalcommits.org/) speci
 
 ---
 
-## 📬 Submitting a Pull Request
+## Submitting a Pull Request
 
 1. Push your branch to your fork:
    ```bash

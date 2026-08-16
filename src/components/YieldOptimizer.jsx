@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { TrendingUp, RefreshCw, Loader, Zap, Activity, ArrowRight } from 'lucide-react';
+import { TrendingUp, RefreshCw, Loader, Zap, Activity, ArrowRight, ExternalLink } from 'lucide-react';
 import { fetchBaseYields } from '../services/agentEngine';
 
 function ApyBar({ base = 0, reward = 0, max = 40 }) {
@@ -258,8 +258,9 @@ export default function YieldOptimizer({ wallet, openWalletModal }) {
 
             {txResult?.basescanUrl && (
               <div style={{ marginTop: '12px', padding: '10px 12px', borderRadius: '6px', background: '#f0fdf4', border: '1px solid #bbf7d0', fontSize: '12px' }}>
-                <a href={txResult.basescanUrl} target="_blank" rel="noreferrer" style={{ color: '#15803d', fontWeight: 600, textDecoration: 'underline' }}>
-                  ↗ View confirmed transaction on BaseScan
+                <a href={txResult.basescanUrl} target="_blank" rel="noreferrer" style={{ color: '#15803d', fontWeight: 600, textDecoration: 'underline', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                  <span>View confirmed transaction on BaseScan</span>
+                  <ExternalLink size={12} />
                 </a>
               </div>
             )}

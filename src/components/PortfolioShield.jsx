@@ -319,7 +319,9 @@ export default function PortfolioShield({ wallet, openWalletModal }) {
                         <div style={{ fontWeight: 500, color: 'var(--text-main)' }}>{app.protocol}</div>
                         <div className="addr" style={{ fontSize: '11px', marginTop: '2px' }}>{app.spender}</div>
                         {app.flagReason && (
-                          <div style={{ fontSize: '11px', color: 'var(--accent-red)', marginTop: '2px' }}>⚠ {app.flagReason}</div>
+                          <div style={{ fontSize: '11px', color: 'var(--accent-red)', marginTop: '2px', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                            <AlertTriangle size={11} /> {app.flagReason}
+                          </div>
                         )}
                       </td>
                       <td style={{ fontFamily: 'var(--font-mono)', fontSize: '12px' }}>{app.token}</td>

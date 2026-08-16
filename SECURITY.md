@@ -1,6 +1,6 @@
 # Security Policy
 
-## 🔒 Non-Custodial Architecture & Principles
+## Non-Custodial Architecture and Principles
 
 OrionSentinel is designed from the ground up as a **non-custodial** application:
 
@@ -10,23 +10,23 @@ OrionSentinel is designed from the ground up as a **non-custodial** application:
 
 ---
 
-## 🛡️ Supported Versions
+## Supported Versions
 
 Only the latest release running on the `main` branch is actively supported with security updates.
 
 | Version | Supported |
 |---|---|
-| 1.0.x (Current) | :white_check_mark: |
-| < 1.0.0 | :x: |
+| 1.0.x (Current) | Yes |
+| < 1.0.0 | No |
 
 ---
 
-## 🚨 Reporting a Vulnerability
+## Reporting a Vulnerability
 
 If you discover a security vulnerability within OrionSentinel, please follow responsible disclosure guidelines:
 
 1. **Do NOT open a public GitHub issue** for critical security disclosures.
-2. Report the vulnerability directly via email or private channel to the maintainers.
+2. Report the vulnerability directly via private channel to the maintainers.
 3. Include detailed reproduction steps, contract addresses involved, and potential impact.
 
 Maintainers will acknowledge your report within 48 hours and work with you on a coordinated fix.
