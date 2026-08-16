@@ -14,7 +14,7 @@
 
 *Non-custodial autonomous sentinel that monitors, optimizes, and qualifies your capital across Base DeFi in real time.*
 
-[Live Demo](http://localhost:5173) | [Documentation](#architecture) | [Security Policy](SECURITY.md) | [Contributing](CONTRIBUTING.md)
+[Live Demo](http://localhost:5173) | [GitHub Repository](https://github.com/OpeyemiMoses/Orion) | [Security Policy](SECURITY.md) | [Contributing](CONTRIBUTING.md)
 
 </div>
 
@@ -23,10 +23,16 @@
 ## Table of Contents
 - [Overview](#overview)
 - [The Problem and The Solution](#the-problem-and-the-solution)
+- [Current MVP](#current-mvp)
+- [Platform Infrastructure](#platform-infrastructure)
+- [Platform Flow](#platform-flow)
 - [Autonomous Core Modules](#autonomous-core-modules)
+- [Tech Stack](#tech-stack)
+- [Quality Checks](#quality-checks)
+- [Project Structure](#project-structure)
+- [Data Access and Scope Limits](#data-access-and-scope-limits)
 - [System Architecture](#system-architecture)
 - [How Orion Works Autonomously](#how-orion-works-autonomously)
-- [Supported Protocols and Live Data Feeds](#supported-protocols-and-live-data-feeds)
 - [Security and Non-Custodial Architecture](#security-and-non-custodial-architecture)
 - [Getting Started](#getting-started)
 - [Environment Configuration](#environment-configuration)
@@ -57,6 +63,86 @@ Operating continuously across 3 core dimensions:
 
 ---
 
+## Current MVP
+
+The current Minimum Viable Product (MVP) of Orion is live, operational, and connected to Base Mainnet:
+
+* **Live Multi-Protocol Lending Telemetry:** Reads live user collateral and debt positions directly from Moonwell (`mToken.getAccountSnapshot`), Compound III (`Comet`), Aave V3 (`getUserAccountData`), and Seamless Protocol.
+* **Autonomous Health Factor Math:** Aggregates multi-market borrowing risk into a single live Health Factor metric with dynamic risk classification (`SAFE`, `CAUTION`, `CRITICAL`).
+* **Yield Opportunity Engine:** Scans live Base liquidity pools across Aerodrome, Moonwell, Morpho, Extra Finance, and Beefy with net-gain calculations factoring in gas fees and slippage.
+* **On-Chain Campaign Qualification Scanner:** Evaluates connected wallet state (`eth_getTransactionCount`, token balances, and `veAERO` locks) against Aerodrome Season 3, Base Onchain Summer II, and Moonwell Mining.
+* **Protocol Security Auditor:** Inspects smart contract addresses on Base, detecting bytecode status, EIP-1967 upgradeable proxy slots, and third-party audit reports.
+* **EIP-6963 Multi-Wallet Provider:** Isolated multi-wallet connection supporting MetaMask, OKX Wallet, Coinbase Wallet, Rabby, and browser injectors without provider collision.
+* **Direct On-Chain Execution Pipeline:** Assembles non-custodial transaction payloads, dispatches to the connected wallet for signature, and links directly to BaseScan transactions.
+
+---
+
+## Platform Infrastructure
+
+Orion is built on a resilient, high-throughput Web3 telemetry infrastructure designed for continuous client-side operation:
+
+```
+┌─────────────────────────────────────────────────────────────────────────┐
+│                       MULTI-RPC RESILIENCE POOL                         │
+│                                                                         │
+│  [ Primary Base RPC ] ──(Failover <50ms)──► [ Base PublicNode ]         │
+│          │                                          │                   │
+│          └──────────────► [ 1RPC Base Node ] ◄──────┘                   │
+└────────────────────────────────────┬────────────────────────────────────┘
+                                     │
+                 ┌───────────────────┴───────────────────┐
+                 ▼                                       ▼
+┌──────────────────────────────────┐   ┌──────────────────────────────────┐
+│      IN-MEMORY RPC CACHE         │   │       DEFI LLAMA YIELD SYNC      │
+│  12-second TTL for read queries  │   │  Non-blocking background stream  │
+│  Prevents rate limits & storms   │   │  Curated Base fallback snapshot  │
+└──────────────────────────────────┘   └──────────────────────────────────┘
+```
+
+1. **Multi-Endpoint Automatic Failover Pool:**
+   * Automatically routes requests across validated CORS-friendly Base endpoints: `https://mainnet.base.org`, `https://base.publicnode.com`, and `https://1rpc.io/base`.
+   * If an endpoint returns 400, 429, or times out (>3.5s), the client instantly fails over to the next operational node in <50ms.
+2. **In-Memory Request Deduplication & Caching:**
+   * Implements a 12-second in-memory TTL cache for high-frequency RPC read calls (`eth_getBalance`, `eth_blockNumber`, and identical `eth_call` payloads) to eliminate burst rate limits.
+3. **DeFi Llama Yield Sync:**
+   * Asynchronous non-blocking background synchronization with 2-second timeout protection and instant fallback to verified Base pool snapshots.
+
+---
+
+## Platform Flow
+
+```
+[ User Connects Wallet ] (EIP-6963 Provider Discovery)
+          │
+          ▼
+[ Autonomous Telemetry Ingestion ]
+   ├─► Query Moonwell, Compound III, Aave V3, Seamless positions
+   ├─► Scan DeFi Llama Base pool APYs & TVL
+   ├─► Check wallet transaction count & governance balances
+   └─► Scan token approval permissions & spender addresses
+          │
+          ▼
+[ Autonomous Decision Engine ]
+   ├─► Compute Aggregate Health Factor (HF)
+   ├─► Calculate Net Yield Benefit: (Target APY - Current APY - Gas - Slippage)
+   └─► Evaluate Incentive Qualification Gaps
+          │
+          ▼
+[ Execution Assembly ]
+   ├─► If HF < 1.50: Assemble protective debt repayment calldata
+   ├─► If Yield Profitable: Formulate token approval & deposit route
+   └─► If Incentive Missing Step: Build qualifying interaction payload
+          │
+          ▼
+[ Non-Custodial User Authorization ]
+   └─► User reviews and signs transaction via Web3 Wallet
+          │
+          ▼
+[ On-Chain Confirmation & BaseScan Link ]
+```
+
+---
+
 ## Autonomous Core Modules
 
 ### 1. Liquidation Shield
@@ -81,6 +167,109 @@ Operating continuously across 3 core dimensions:
 
 ---
 
+## Tech Stack
+
+* **Frontend Framework:** React 19 + Vite
+* **Styling & Design System:** Vanilla CSS with custom design tokens, modern typography, glassmorphism, responsive grid containers, and smooth cubic-bezier animations.
+* **Web3 Integration & Standards:**
+  * EIP-6963 (Multi-Injected Provider Discovery)
+  * JSON-RPC 2.0 Client with automatic endpoint failover
+  * Standard ERC-20 / Compound / Aave ABI interfaces
+* **Data Providers & APIs:**
+  * Base Mainnet JSON-RPC (`mainnet.base.org`, `base.publicnode.com`, `1rpc.io/base`)
+  * BaseScan Block Explorer API
+  * DeFi Llama Yields API
+* **Icons & Animation:**
+  * Lucide React (Clean vector iconography)
+  * IntersectionObserver Scroll Reveal Hook (`useScrollReveal`)
+
+---
+
+## Quality Checks
+
+* **Zero-Custody Guarantee:** Orion does not collect, log, store, or transmit private keys, seed phrases, or credentials.
+* **Bytecode Verification:** Verifies smart contract addresses against on-chain bytecode (`eth_getCode`) to detect Personal Wallets (EOAs) vs. smart contracts.
+* **Proxy Architecture Detection:** Checks EIP-1967 implementation storage slots to identify upgradeable contracts and warn users of admin changeability.
+* **Strict Multi-RPC Fallback:** All read operations are wrapped with abort controllers and multi-node fallbacks to eliminate single-point-of-failure hangs.
+* **Production Build Verification:** Validated with `npm run build` using strict module transformation and bundle minification.
+
+---
+
+## Project Structure
+
+```
+orion/
+├── .github/
+│   ├── ISSUE_TEMPLATE/
+│   │   ├── bug_report.md             # Standard bug report template
+│   │   └── feature_request.md        # Protocol integration request template
+│   └── pull_request_template.md      # Pull request checklist
+├── public/
+│   ├── favicon.png                   # Official browser favicon
+│   ├── logo.png                      # Official brand avatar
+│   └── orion-beam.png                # Dual-agent coordination illustration
+├── server/
+│   └── index.js                      # Express relay proxy (optional server-side cache)
+├── src/
+│   ├── assets/
+│   │   ├── hero.png                  # Product hero visual
+│   │   ├── logo.png                  # Brand logo
+│   │   └── orion-beam.png            # Character beam illustration
+│   ├── components/
+│   │   ├── AgentAuditor.jsx          # Security export & audit view
+│   │   ├── AutonomousAgent.jsx       # Autonomous execution pipeline component
+│   │   ├── Dashboard.jsx             # Main application layout & history back-stack
+│   │   ├── ErrorBoundary.jsx         # Global error fallback component
+│   │   ├── Header.jsx                # Top bar with network status, logo & GitHub link
+│   │   ├── IncentiveTracker.jsx      # Campaign qualification gap evaluator
+│   │   ├── LandingPage.jsx           # Landing page with 3D mockup & on-scroll reveal
+│   │   ├── LiquidationShield.jsx     # Multi-protocol health factor monitor & repay
+│   │   ├── PortfolioShield.jsx       # Token approval risk auditor & revocation
+│   │   ├── ProtocolAuditor.jsx       # Contract bytecode, proxy & audit validator
+│   │   ├── Settings.jsx              # RPC endpoint and parameter configuration
+│   │   ├── WalletConnectModal.jsx    # EIP-6963 multi-wallet modal
+│   │   └── YieldOptimizer.jsx        # Live APY scanner & rebalancing calculator
+│   ├── hooks/
+│   │   └── useScrollReveal.js        # IntersectionObserver on-scroll reveal hook
+│   ├── services/
+│   │   ├── agentEngine.js            # Health factor math, incentive rules & yield fetch
+│   │   ├── onChainExecutor.js        # Non-custodial transaction dispatcher & calldata
+│   │   ├── protocolAudit.js          # Contract verification, proxy slots & TVL queries
+│   │   ├── riskEngine.js             # Spender risk scoring & classification
+│   │   ├── walletProviders.js        # EIP-6963 provider resolver
+│   │   └── web3Wallet.js             # Multi-RPC pool, balance & approval scanner
+│   ├── App.jsx                       # Root application component & view router
+│   ├── index.css                     # Design tokens, typography & animation keyframes
+│   └── main.jsx                      # React entrypoint
+├── CODE_OF_CONDUCT.md                # Contributor Covenant Code of Conduct
+├── CONTRIBUTING.md                   # Development workflow & contribution guide
+├── LICENSE                           # MIT License
+├── package.json                      # Project dependencies & scripts
+├── README.md                         # Project documentation
+├── SECURITY.md                       # Security policy & disclosure guidelines
+└── vite.config.js                    # Vite bundler configuration
+```
+
+---
+
+## Data Access and Scope Limits
+
+To protect users and ensure deterministic behavior, Orion operates within explicit boundaries:
+
+1. **Read Operations (Public RPC):**
+   * Orion queries only public, verifiable on-chain state (`eth_call`, `eth_getBalance`, `eth_getTransactionCount`, `eth_getCode`).
+   * No proprietary, centralized database or opaque indexer is required.
+2. **Write Operations (Delegated Web3 Signing):**
+   * Orion **never** executes transactions autonomously without explicit user signing.
+   * Every action (debt repayment, token approval, reallocation deposit) generates a standard EVM transaction payload presented to the user's connected wallet for review and approval.
+3. **Allowance Scope Limits:**
+   * Reallocation approvals target exact required allowances rather than infinite/unbounded permissions.
+   * Approval Shield includes 1-click 0-allowance revocation utilities.
+4. **Network Boundaries:**
+   * Orion strictly targets Base Mainnet (Chain ID `8453`, `0x2105`). Transactions on unverified networks are automatically intercepted and prompted for network switching.
+
+---
+
 ## System Architecture
 
 ```
@@ -97,7 +286,7 @@ Operating continuously across 3 core dimensions:
 +-------------------------------------------------------------------------+
 |               ON-CHAIN TELEMETRY & DECISION PIPELINE                    |
 |   * Base JSON-RPC (eth_call, eth_getLogs, eth_getCode)                  |
-|   * Multi-Endpoint Automatic RPC Fallback (Base, LlamaRPC, 1RPC)        |
+|   * Multi-Endpoint Automatic RPC Fallback (Base, PublicNode, 1RPC)      |
 |   * EIP-6963 Isolated Multi-Wallet Provider Manager                     |
 +----------------------------------+--------------------------------------+
                                    |
@@ -108,6 +297,30 @@ Operating continuously across 3 core dimensions:
 |   * BaseScan Verification & Block Explorer Confirmation                 |
 +-------------------------------------------------------------------------+
 ```
+
+---
+
+## How Orion Works Autonomously
+
+```
+       +-------------------------------------------------------------+
+       |             CONTINUOUS AUTONOMOUS SENSING LOOP              |
+       |   Base JSON-RPC  *  DeFi Llama  *  Lending Protocols        |
+       +------------------------------+------------------------------+
+                                      |
+            +-------------------------+-------------------------+
+            v                                                   v
++-----------------------+                           +-----------------------+
+|   DECISION ENGINE     |                           |   EXECUTION BUILDER   |
+| * Health Factor Math  | ---> Triggers Calculated ->| * Calldata Assembly   |
+| * Net Yield Formula   |       Opportunity         | * Gas Optimization    |
+| * Incentive Criteria  |                           | * Wallet Dispatch     |
++-----------------------+                           +-----------------------+
+```
+
+* **Continuous Observation:** Continuously monitors health factors, active incentives, and yield spreads without requiring active user input.
+* **Mathematical Modeling:** Quantifies risk thresholds ($HF < 1.5$) and calculates the exact debt repayment amount to restore safety buffers ($HF \ge 2.0$).
+* **Automated Calldata Construction:** Formats raw smart contract calls for token approvals, vault deposits, and debt repayments.
 
 ---
 
@@ -158,8 +371,8 @@ npm run preview
 Create a `.env` file in the root directory:
 
 ```env
-# Primary Base RPC Endpoint (Alchemy, Infura, QuickNode, or public)
-VITE_BASE_RPC_URL=https://base-mainnet.g.alchemy.com/v2/YOUR_ALCHEMY_KEY
+# Primary Base RPC Endpoint
+VITE_BASE_RPC_URL=https://mainnet.base.org
 
 # BaseScan API Key (Optional for faster contract source verification)
 VITE_BASESCAN_API_KEY=YOUR_BASESCAN_KEY
@@ -177,6 +390,7 @@ PORT=3001
 - [x] Autonomous Incentive Criteria Evaluator (Aerodrome, Moonwell, Base Onchain Summer)
 - [x] EIP-6963 Multi-Wallet Provider Isolation
 - [x] Direct On-Chain Execution Pipeline with BaseScan Links
+- [x] On-Scroll Reveal and Smooth Rise-In Animation System
 - [ ] ERC-4337 Session Key Automation for 1-click bounded auto-execution
 - [ ] Cross-chain capital bridging telemetry (Arbitrum, Optimism to Base)
 - [ ] Telegram & Discord real-time liquidation alert bot
