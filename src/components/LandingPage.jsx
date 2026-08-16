@@ -232,12 +232,17 @@ export default function LandingPage({ onLaunchApp, openWalletModal }) {
       {/* ── FOOTER ─────────────────────────────────────────── */}
       <div className="divider" />
       <footer style={{ padding: 'clamp(24px, 4vw, 36px) 0', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
-        <span style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-main)' }}>Orion</span>
-        <span style={{ fontSize: '11px', color: 'var(--text-dim)' }}>Built for Orion Agents Hackathon · Base Mainnet · {new Date().getFullYear()}</span>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <img src="/logo.png" alt="Orion" style={{ width: 22, height: 22, borderRadius: '50%', objectFit: 'cover', border: '1px solid var(--border)' }} />
+          <span style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-main)' }}>Orion</span>
+        </div>
+        <span style={{ fontSize: '11px', color: 'var(--text-dim)' }}>
+          Built by <a href="https://github.com/OpeyemiMoses" target="_blank" rel="noreferrer" style={{ color: 'var(--text-muted)', textDecoration: 'underline' }}>OpeyemiMoses</a> for Orion Agents Hackathon · Base Mainnet · {new Date().getFullYear()}
+        </span>
         <div style={{ display: 'flex', gap: '16px' }}>
-          {['GitHub', 'Base Explorer', 'DeFi Llama'].map(l => (
-            <span key={l} style={{ fontSize: '12px', color: 'var(--text-muted)', cursor: 'pointer' }}>{l}</span>
-          ))}
+          <a href="https://github.com/OpeyemiMoses/Orion" target="_blank" rel="noreferrer" style={{ fontSize: '12px', color: 'var(--text-muted)', textDecoration: 'none' }}>GitHub</a>
+          <a href="https://basescan.org" target="_blank" rel="noreferrer" style={{ fontSize: '12px', color: 'var(--text-muted)', textDecoration: 'none' }}>BaseScan</a>
+          <a href="https://defillama.com/chain/Base" target="_blank" rel="noreferrer" style={{ fontSize: '12px', color: 'var(--text-muted)', textDecoration: 'none' }}>DeFi Llama</a>
         </div>
       </footer>
     </div>

@@ -118,11 +118,21 @@ export default function App() {
         background: 'rgba(5, 7, 12, 0.95)'
       }}>
         <div style={{ maxWidth: '1280px', margin: '0 auto', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
-          <div>
-            <strong>Orion</strong> • Autonomous Capital Sentinel on Base Network
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <img src="/logo.png" alt="Orion" style={{ width: 18, height: 18, borderRadius: '50%', objectFit: 'cover' }} />
+            <span><strong>Orion</strong> • Autonomous Capital Sentinel on Base</span>
           </div>
           <div>
-            Built for Orion Agents Ecosystem • Secured with Base RPC Telemetry
+            <a
+              href="https://github.com/OpeyemiMoses/Orion"
+              target="_blank"
+              rel="noreferrer"
+              style={{ color: 'var(--text-muted)', textDecoration: 'underline' }}
+            >
+              GitHub Repository
+            </a>
+            {' • '}
+            <span>Built by <a href="https://github.com/OpeyemiMoses" target="_blank" rel="noreferrer" style={{ color: 'var(--text-muted)', textDecoration: 'underline' }}>OpeyemiMoses</a></span>
           </div>
         </div>
       </footer>

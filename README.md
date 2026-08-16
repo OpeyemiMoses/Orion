@@ -1,8 +1,8 @@
-# Orion
-
 <div align="center">
 
-![Orion Banner](src/assets/hero.png)
+<img src="public/logo.png" width="140" height="140" alt="Orion Logo" />
+
+# Orion
 
 **Autonomous DeFi Capital Co-Pilot on Base Mainnet**
 
