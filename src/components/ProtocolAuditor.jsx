@@ -47,23 +47,27 @@ function RiskFlag({ level, text }) {
 }
 
 // ── Interaction verdict banner ────────────────────────────────────────────────
-function InteractionVerdict({ signal, reason, color }) {
-  const cfg = {
-    danger:  { bg: 'var(--badge-danger)', border: 'rgba(220,38,38,0.25)', text: 'var(--badge-danger-text)', icon: <ShieldAlert size={18} /> },
-    warn:    { bg: 'var(--badge-warn)',   border: 'rgba(217,119,6,0.25)', text: 'var(--badge-warn-text)',   icon: <AlertTriangle size={18} /> },
-    settled: { bg: 'var(--badge-settled)',border: 'rgba(21,128,61,0.2)',  text: 'var(--badge-settled-text)',icon: <CheckCircle2 size={18} /> },
-  }[color];
+function InteractionVerdict({ signal, reason, color, bg, border, text }) {
+  const isSafe = color === 'settled' || color === '#15803d' || (signal && signal.includes('CLEARED'));
+  const isWarn = color === 'warn' || color === '#d97706' || (signal && signal.includes('CAUTION'));
+
+  const finalBg = bg || (isSafe ? 'var(--badge-settled)' : isWarn ? 'var(--badge-warn)' : 'var(--badge-danger)');
+  const finalBorder = border || (isSafe ? 'rgba(21,128,61,0.2)' : isWarn ? 'rgba(217,119,6,0.25)' : 'rgba(220,38,38,0.25)');
+  const finalText = text || (isSafe ? 'var(--badge-settled-text)' : isWarn ? 'var(--badge-warn-text)' : 'var(--badge-danger-text)');
+  const Icon = isSafe ? CheckCircle2 : isWarn ? AlertTriangle : ShieldAlert;
 
   return (
     <div style={{
       display: 'flex', alignItems: 'flex-start', gap: '12px',
-      background: cfg.bg, border: `1px solid ${cfg.border}`,
+      background: finalBg, border: `1px solid ${finalBorder}`,
       padding: '14px 18px', borderRadius: '10px', marginBottom: '24px',
     }}>
-      <span style={{ color: cfg.text, flexShrink: 0, marginTop: '1px' }}>{cfg.icon}</span>
+      <span style={{ color: finalText, flexShrink: 0, marginTop: '1px' }}>
+        <Icon size={18} />
+      </span>
       <div>
-        <div style={{ fontWeight: 700, fontSize: '13px', color: cfg.text, marginBottom: '3px', letterSpacing: '0.04em' }}>
-          {signal}
+        <div style={{ fontWeight: 700, fontSize: '13px', color: finalText, marginBottom: '3px', letterSpacing: '0.04em' }}>
+          {signal || 'VERDICT READY'}
         </div>
         <div style={{ fontSize: '12px', color: 'var(--text-muted)', lineHeight: 1.5 }}>{reason}</div>
       </div>
