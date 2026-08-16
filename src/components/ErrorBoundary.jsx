@@ -27,7 +27,7 @@ export default class ErrorBoundary extends React.Component {
               fontSize: '11px', fontWeight: 600, textTransform: 'uppercase',
               letterSpacing: '0.1em', color: 'var(--text-dim)', marginBottom: '16px'
             }}>
-              OrionSentinel — Runtime Error
+              Orion — Runtime Error
             </p>
             <h1 style={{
               fontFamily: 'var(--font-display)', fontSize: '2rem',

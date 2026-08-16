@@ -119,7 +119,7 @@ export default function App() {
       }}>
         <div style={{ maxWidth: '1280px', margin: '0 auto', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
           <div>
-            <strong>OrionSentinel</strong> • Dual Shield Security Protocol on Base Network
+            <strong>Orion</strong> • Autonomous Capital Sentinel on Base Network
           </div>
           <div>
             Built for Orion Agents Ecosystem • Secured with Base RPC Telemetry

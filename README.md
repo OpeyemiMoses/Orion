@@ -1,8 +1,8 @@
-# OrionSentinel
+# Orion
 
 <div align="center">
 
-![OrionSentinel Banner](src/assets/hero.png)
+![Orion Banner](src/assets/hero.png)
 
 **Autonomous DeFi Capital Co-Pilot on Base Mainnet**
 
@@ -25,7 +25,7 @@
 - [The Problem and The Solution](#the-problem-and-the-solution)
 - [Autonomous Core Modules](#autonomous-core-modules)
 - [System Architecture](#system-architecture)
-- [How OrionSentinel Works Autonomously](#how-orionsentinel-works-autonomously)
+- [How Orion Works Autonomously](#how-orion-works-autonomously)
 - [Supported Protocols and Live Data Feeds](#supported-protocols-and-live-data-feeds)
 - [Security and Non-Custodial Architecture](#security-and-non-custodial-architecture)
 - [Getting Started](#getting-started)
@@ -38,7 +38,7 @@
 
 ## Overview
 
-OrionSentinel is an autonomous DeFi co-pilot engineered natively for Base Mainnet. It transforms passive crypto portfolios into self-defending, yield-maximizing, and incentive-qualifying positions.
+Orion is an autonomous DeFi co-pilot engineered natively for Base Mainnet. It transforms passive crypto portfolios into self-defending, yield-maximizing, and incentive-qualifying positions.
 
 Operating continuously across 3 core dimensions:
 1. **Liquidation Shield:** Real-time multi-protocol collateral health monitoring and automated debt repayment routing.
@@ -49,7 +49,7 @@ Operating continuously across 3 core dimensions:
 
 ## The Problem and The Solution
 
-| The Challenge in DeFi | OrionSentinel Autonomous Solution |
+| The Challenge in DeFi | Orion Autonomous Solution |
 |---|---|
 | **Liquidation Volatility:** Sudden price drops liquidate borrowing positions across Moonwell, Aave, and Compound if not manually monitored 24/7. | **Continuous Health Sensing:** The agent computes aggregate collateral health across protocols and autonomously formulates debt repayments if health factor falls below 1.5. |
 | **Yield Inefficiency:** Capital sits in low-yield pools because calculating net APY gains after factoring in gas fees and slippage is tedious. | **Mathematical Net-Gain Routing:** The agent continuously parses hundreds of Base pools, executing reallocations only when the net financial benefit is positive. |
@@ -85,7 +85,7 @@ Operating continuously across 3 core dimensions:
 
 ```
 +-------------------------------------------------------------------------+
-|                           ORIONSENTINEL AGENT                           |
+|                               ORION AGENT                               |
 |                                                                         |
 |  +-----------------------+  +---------------------+  +---------------+  |
 |  |  Liquidation Shield   |  |   Yield Optimizer   |  |   Incentive   |  |
@@ -113,7 +113,7 @@ Operating continuously across 3 core dimensions:
 
 ## Security and Non-Custodial Architecture
 
-* **Zero Cloud Key Storage:** OrionSentinel **never** holds, stores, or transmits your private keys.
+* **Zero Cloud Key Storage:** Orion **never** holds, stores, or transmits your private keys.
 * **Autonomous Intelligence + Delegated Execution:** The agent performs 100% of the continuous observation, mathematical modeling, and payload construction autonomously in the background. Transactions are dispatched directly to your Web3 wallet for signing.
 * **EIP-6963 Wallet Isolation:** Native multi-provider detection prevents extensions (like OKX or MetaMask) from hijacking or colliding with each other.
 

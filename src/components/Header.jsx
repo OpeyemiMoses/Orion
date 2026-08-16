@@ -24,7 +24,7 @@ export default function Header({ currentView, setCurrentView, wallet, openWallet
       >
         <Shield size={16} strokeWidth={2.5} />
         <span style={{ fontWeight: 700, fontSize: '14px', letterSpacing: '-0.01em' }}>
-          OrionSentinel
+          Orion
         </span>
       </div>
 

@@ -12,7 +12,7 @@ function DashboardMockup() {
           <div style={{ width: 7, height: 7, borderRadius: '50%', background: '#fde68a' }} />
           <div style={{ width: 7, height: 7, borderRadius: '50%', background: '#bbf7d0' }} />
           <span style={{ fontSize: '10px', color: 'var(--text-dim)', marginLeft: 8, fontFamily: 'var(--font-mono)' }}>
-            orionsentinel.app
+            orion.app
           </span>
           <span style={{ marginLeft: 'auto', fontSize: '9px', color: '#16a34a', fontWeight: 600 }}>● LIVE</span>
         </div>
@@ -100,21 +100,16 @@ export default function LandingPage({ onLaunchApp, openWalletModal }) {
           <p style={{ fontSize: '11px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.1em', color: 'var(--text-dim)', marginBottom: '20px' }}>
             Base Network · Autonomous DeFi Agent
           </p>
-          <h1 style={{
-            fontFamily: 'var(--font-display)',
-            fontSize: 'clamp(2rem, 3.8vw, 3.4rem)',
-            fontWeight: 400, lineHeight: 1.12,
-            color: 'var(--text-main)', marginBottom: '24px', letterSpacing: '-0.025em'
-          }}>
-            Your DeFi capital on Base,<br />managed autonomously.
+          <h1 style={{ fontFamily: 'var(--font-display)', fontSize: 'clamp(2rem, 4vw, 3.2rem)', fontWeight: 400, letterSpacing: '-0.02em', lineHeight: 1.15, marginBottom: '18px' }}>
+            Autonomous capital sentinel<br />on Base Network.
           </h1>
-          <p style={{ fontSize: '14px', color: 'var(--text-muted)', lineHeight: 1.75, marginBottom: '32px', maxWidth: '400px' }}>
-            OrionSentinel protects against liquidation, chases the best yield across every Base protocol,
-            and qualifies your wallet for active incentive programs — without ever custodying your keys.
+          <p style={{ fontSize: '15px', color: 'var(--text-muted)', lineHeight: 1.65, marginBottom: '32px', maxWidth: '580px' }}>
+            Orion protects against liquidation, chases the best yield across every Base protocol,
+            and qualifies you for active ecosystem incentives — 100% non-custodially.
           </p>
-          <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
-            <button onClick={onLaunchApp} className="btn btn-dark btn-lg" style={{ gap: '8px' }}>
-              Launch app <ArrowRight size={14} />
+          <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap', marginBottom: '56px' }}>
+            <button onClick={onLaunchApp} className="btn btn-dark btn-lg">
+              Launch agent <ArrowRight size={14} />
             </button>
             <button onClick={openWalletModal} className="btn btn-outline btn-lg">
               Connect wallet
@@ -214,7 +209,7 @@ export default function LandingPage({ onLaunchApp, openWalletModal }) {
         <div>
           <h3 style={{ fontFamily: 'var(--font-display)', fontSize: '1.2rem', fontWeight: 400, marginBottom: '8px' }}>Start monitoring</h3>
           <p style={{ fontSize: '13px', color: 'var(--text-muted)', lineHeight: 1.6, marginBottom: '16px' }}>
-            Connect your wallet and activate live shield telemetry on Base. OrionSentinel never sees your private key.
+            Connect your wallet and activate live shield telemetry on Base. Orion never sees your private key.
           </p>
           <button onClick={onLaunchApp} className="btn btn-dark">Launch app</button>
         </div>
@@ -237,7 +232,7 @@ export default function LandingPage({ onLaunchApp, openWalletModal }) {
       {/* ── FOOTER ─────────────────────────────────────────── */}
       <div className="divider" />
       <footer style={{ padding: 'clamp(24px, 4vw, 36px) 0', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
-        <span style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-main)' }}>OrionSentinel</span>
+        <span style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-main)' }}>Orion</span>
         <span style={{ fontSize: '11px', color: 'var(--text-dim)' }}>Built for Orion Agents Hackathon · Base Mainnet · {new Date().getFullYear()}</span>
         <div style={{ display: 'flex', gap: '16px' }}>
           {['GitHub', 'Base Explorer', 'DeFi Llama'].map(l => (

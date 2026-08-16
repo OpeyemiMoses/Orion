@@ -215,7 +215,7 @@ export default function PortfolioShield({ wallet, openWalletModal }) {
           Live protocol permissions & approval risk.
         </h2>
         <p style={{ fontSize: '13px', color: 'var(--text-muted)', lineHeight: 1.6, marginBottom: '14px', maxWidth: '520px' }}>
-          OrionSentinel continuously monitors your token permissions across Base protocols to identify and eliminate security exposures.
+          Orion continuously monitors your token permissions across Base protocols to identify and eliminate security exposures.
         </p>
         <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
           <button onClick={() => executeProtection('revoke')} className="btn btn-dark">Execute revocations</button>

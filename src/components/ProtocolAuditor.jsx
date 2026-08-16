@@ -119,7 +119,7 @@ export default function ProtocolAuditor() {
       <div style={{ marginBottom: '28px' }}>
         <h1 className="page-title">Protocol Auditor</h1>
         <p className="page-subtitle">
-          Paste any Base ecosystem contract address. OrionSentinel reads two chain RPCs, BaseScan, and DeFi Llama — no value moves.
+          Paste any Base ecosystem contract address. Orion reads multi-endpoint Base RPCs, BaseScan, and DeFi Llama.
         </p>
       </div>
 

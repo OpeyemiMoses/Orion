@@ -1,6 +1,6 @@
-# Contributing to OrionSentinel
+# Contributing to Orion
 
-Thank you for your interest in contributing to **OrionSentinel**! We welcome contributions from developers, researchers, and DeFi builders.
+Thank you for your interest in contributing to **Orion**! We welcome contributions from developers, researchers, and DeFi builders.
 
 ---
 
