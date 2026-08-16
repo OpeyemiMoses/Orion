@@ -17,8 +17,29 @@ const NAV = [
 
 export default function Dashboard({ wallet, openWalletModal, setCurrentView }) {
   const [tab, setTab] = useState('liquidation');
+  const [history, setHistory] = useState(['liquidation']);
+
+  const handleNavigate = (newTab) => {
+    if (newTab === tab) return;
+    setHistory(prev => [...prev, newTab]);
+    setTab(newTab);
+  };
+
+  const handleBack = () => {
+    if (history.length > 1) {
+      const nextHistory = [...history];
+      nextHistory.pop(); // remove current
+      const prevTab = nextHistory[nextHistory.length - 1];
+      setHistory(nextHistory);
+      setTab(prevTab);
+    } else {
+      if (setCurrentView) setCurrentView('landing');
+    }
+  };
 
   const currentNav = NAV.find(n => n.id === tab) || (tab === 'settings' ? { label: 'Settings', icon: SettingsIcon } : null);
+  const prevNavId = history.length > 1 ? history[history.length - 2] : null;
+  const prevNav = prevNavId ? (NAV.find(n => n.id === prevNavId) || (prevNavId === 'settings' ? { label: 'Settings' } : null)) : null;
 
   return (
     <div className="app-layout">
@@ -26,7 +47,7 @@ export default function Dashboard({ wallet, openWalletModal, setCurrentView }) {
       <aside className="sidebar">
         <div className="sidebar-section-label">Agent Modules</div>
         {NAV.filter(n => n.group === 'agent').map(({ id, label, icon: Icon }) => (
-          <button key={id} onClick={() => setTab(id)} className={`sidebar-link ${tab === id ? 'active' : ''}`}>
+          <button key={id} onClick={() => handleNavigate(id)} className={`sidebar-link ${tab === id ? 'active' : ''}`}>
             <Icon size={14} />{label}
           </button>
         ))}
@@ -34,7 +55,7 @@ export default function Dashboard({ wallet, openWalletModal, setCurrentView }) {
         <div style={{ borderTop: '1px solid var(--border)', marginTop: '8px', paddingTop: '4px' }}>
           <div className="sidebar-section-label">Tools</div>
           {NAV.filter(n => n.group === 'tools').map(({ id, label, icon: Icon }) => (
-            <button key={id} onClick={() => setTab(id)} className={`sidebar-link ${tab === id ? 'active' : ''}`}>
+            <button key={id} onClick={() => handleNavigate(id)} className={`sidebar-link ${tab === id ? 'active' : ''}`}>
               <Icon size={14} />{label}
             </button>
           ))}
@@ -42,7 +63,7 @@ export default function Dashboard({ wallet, openWalletModal, setCurrentView }) {
 
         <div style={{ borderTop: '1px solid var(--border)', marginTop: '8px', paddingTop: '4px' }}>
           <div className="sidebar-section-label">System</div>
-          <button onClick={() => setTab('settings')} className={`sidebar-link ${tab === 'settings' ? 'active' : ''}`}>
+          <button onClick={() => handleNavigate('settings')} className={`sidebar-link ${tab === 'settings' ? 'active' : ''}`}>
             <SettingsIcon size={14} />Settings
           </button>
         </div>
@@ -53,11 +74,12 @@ export default function Dashboard({ wallet, openWalletModal, setCurrentView }) {
         {/* Navigation Breadcrumb Bar */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px', gap: '12px', flexWrap: 'wrap' }}>
           <button
-            onClick={() => setCurrentView ? setCurrentView('landing') : null}
-            className="btn btn-ghost"
-            style={{ padding: '5px 8px', fontSize: '12px', color: 'var(--text-muted)', display: 'inline-flex', alignItems: 'center', gap: '6px' }}
+            onClick={handleBack}
+            className="btn btn-outline"
+            style={{ padding: '5px 10px', fontSize: '12px', color: 'var(--text-main)', display: 'inline-flex', alignItems: 'center', gap: '6px' }}
           >
-            <ArrowLeft size={13} /> Back to Overview
+            <ArrowLeft size={13} />
+            <span>Back{prevNav ? ` (${prevNav.label})` : ''}</span>
           </button>
           <span style={{ fontSize: '12px', color: 'var(--text-dim)', fontFamily: 'var(--font-mono)' }}>
             Base Mainnet • {currentNav?.label}
