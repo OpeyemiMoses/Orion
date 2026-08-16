@@ -83,7 +83,11 @@ function DashboardMockup() {
   );
 }
 
+import { useScrollReveal } from '../hooks/useScrollReveal';
+
 export default function LandingPage({ onLaunchApp, openWalletModal }) {
+  useScrollReveal();
+
   return (
     <div style={{ maxWidth: '1180px', margin: '0 auto', padding: '0 clamp(20px, 4vw, 48px)' }}>
 
@@ -95,19 +99,19 @@ export default function LandingPage({ onLaunchApp, openWalletModal }) {
         gap: 'clamp(32px, 5vw, 64px)',
         padding: 'clamp(48px, 8vw, 96px) 0 clamp(48px, 6vw, 72px)',
       }}>
-        {/* Left */}
-        <div style={{ minWidth: 0 }}>
-          <p style={{ fontSize: '11px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.1em', color: 'var(--text-dim)', marginBottom: '20px' }}>
+        {/* Left: Hero Copy with Rise-In Animation */}
+        <div className="rise-in" style={{ minWidth: 0 }}>
+          <p className="rise-in rise-delay-1" style={{ fontSize: '11px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.1em', color: 'var(--text-dim)', marginBottom: '20px' }}>
             Base Network · Autonomous DeFi Agent
           </p>
-          <h1 style={{ fontFamily: 'var(--font-display)', fontSize: 'clamp(2rem, 4vw, 3.2rem)', fontWeight: 400, letterSpacing: '-0.02em', lineHeight: 1.15, marginBottom: '18px' }}>
+          <h1 className="rise-in rise-delay-2" style={{ fontFamily: 'var(--font-display)', fontSize: 'clamp(2rem, 4vw, 3.2rem)', fontWeight: 400, letterSpacing: '-0.02em', lineHeight: 1.15, marginBottom: '18px' }}>
             Autonomous capital sentinel<br />on Base Network.
           </h1>
-          <p style={{ fontSize: '15px', color: 'var(--text-muted)', lineHeight: 1.65, marginBottom: '32px', maxWidth: '580px' }}>
+          <p className="rise-in rise-delay-3" style={{ fontSize: '15px', color: 'var(--text-muted)', lineHeight: 1.65, marginBottom: '32px', maxWidth: '580px' }}>
             Orion protects against liquidation, chases the best yield across every Base protocol,
             and qualifies you for active ecosystem incentives — 100% non-custodially.
           </p>
-          <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap', marginBottom: '56px' }}>
+          <div className="rise-in rise-delay-4" style={{ display: 'flex', gap: '12px', flexWrap: 'wrap', marginBottom: '56px' }}>
             <button onClick={onLaunchApp} className="btn btn-dark btn-lg">
               Launch agent <ArrowRight size={14} />
             </button>
@@ -117,8 +121,8 @@ export default function LandingPage({ onLaunchApp, openWalletModal }) {
           </div>
         </div>
 
-        {/* Right: 3D Mockup + Floating Beam Accent */}
-        <div style={{ minWidth: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '20px' }}>
+        {/* Right: 3D Mockup + Floating Beam Accent with Scale Rise */}
+        <div className="rise-in-scale rise-delay-2" style={{ minWidth: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '20px' }}>
           <DashboardMockup />
           <div className="floating-beam-primary" style={{ width: '100%', maxWidth: '380px', marginTop: '-10px' }}>
             <img
@@ -132,8 +136,8 @@ export default function LandingPage({ onLaunchApp, openWalletModal }) {
 
       <div className="divider" />
 
-      {/* ── THREE MODULES ──────────────────────────────────── */}
-      <section style={{ padding: 'clamp(40px, 6vw, 72px) 0' }}>
+      {/* ── THREE MODULES (On-Scroll Reveal) ───────────────── */}
+      <section className="scroll-reveal" style={{ padding: 'clamp(40px, 6vw, 72px) 0' }}>
         <p style={{ fontSize: '11px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.1em', color: 'var(--text-dim)', marginBottom: '12px' }}>
           Three autonomous modules
         </p>
@@ -144,7 +148,7 @@ export default function LandingPage({ onLaunchApp, openWalletModal }) {
           Real on-chain reads from Moonwell, Compound III, Aave V3, Seamless, and DeFi Llama. Every decision derived from verifiable data.
         </p>
 
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '1px', background: 'var(--border)', border: '1px solid var(--border)', borderRadius: '14px', overflow: 'hidden' }}>
+        <div className="scroll-reveal-scale" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '1px', background: 'var(--border)', border: '1px solid var(--border)', borderRadius: '14px', overflow: 'hidden' }}>
           {[
             {
               icon: ShieldAlert,
@@ -164,8 +168,8 @@ export default function LandingPage({ onLaunchApp, openWalletModal }) {
               desc: 'Evaluates activity history, asset holdings, and market participation to verify eligibility for active Base ecosystem reward programs.',
               features: ['Aerodrome LP Rewards', 'Base Onchain Summer II', 'Moonwell Reward Program', 'Extra Finance Program'],
             },
-          ].map(({ icon: Icon, title, desc, features }) => (
-            <div key={title} style={{ background: 'var(--bg-card)', padding: 'clamp(24px, 3vw, 36px) clamp(20px, 3vw, 28px)' }}>
+          ].map(({ icon: Icon, title, desc, features }, index) => (
+            <div key={title} className={`scroll-reveal scroll-delay-${index + 1}`} style={{ background: 'var(--bg-card)', padding: 'clamp(24px, 3vw, 36px) clamp(20px, 3vw, 28px)' }}>
               <div style={{ width: 36, height: 36, borderRadius: '10px', background: 'var(--bg)', border: '1px solid var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '16px' }}>
                 <Icon size={17} style={{ color: 'var(--text-dim)' }} />
               </div>
@@ -186,8 +190,8 @@ export default function LandingPage({ onLaunchApp, openWalletModal }) {
 
       <div className="divider" />
 
-      {/* ── PROTOCOL AUDITOR callout ───────────────────────── */}
-      <section style={{ padding: 'clamp(40px, 6vw, 72px) 0' }}>
+      {/* ── PROTOCOL AUDITOR callout (On-Scroll Reveal) ─────── */}
+      <section className="scroll-reveal" style={{ padding: 'clamp(40px, 6vw, 72px) 0' }}>
         <div style={{ display: 'grid', gridTemplateColumns: '1fr auto', gap: '32px', alignItems: 'center', flexWrap: 'wrap' }}>
           <div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '12px' }}>
@@ -211,23 +215,23 @@ export default function LandingPage({ onLaunchApp, openWalletModal }) {
 
       <div className="divider" />
 
-      {/* ── FOOTER CTA ─────────────────────────────────────── */}
-      <section style={{ padding: 'clamp(40px, 6vw, 72px) 0 clamp(48px, 8vw, 80px)', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '32px' }}>
-        <div>
+      {/* ── FOOTER CTA (On-Scroll Reveal) ───────────────────── */}
+      <section className="scroll-reveal" style={{ padding: 'clamp(40px, 6vw, 72px) 0 clamp(48px, 8vw, 80px)', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '32px' }}>
+        <div className="scroll-reveal scroll-delay-1">
           <h3 style={{ fontFamily: 'var(--font-display)', fontSize: '1.2rem', fontWeight: 400, marginBottom: '8px' }}>Start monitoring</h3>
           <p style={{ fontSize: '13px', color: 'var(--text-muted)', lineHeight: 1.6, marginBottom: '16px' }}>
             Connect your wallet and activate live shield telemetry on Base. Orion never sees your private key.
           </p>
           <button onClick={onLaunchApp} className="btn btn-dark">Launch app</button>
         </div>
-        <div>
+        <div className="scroll-reveal scroll-delay-2">
           <h3 style={{ fontFamily: 'var(--font-display)', fontSize: '1.2rem', fontWeight: 400, marginBottom: '8px' }}>Audit a protocol</h3>
           <p style={{ fontSize: '13px', color: 'var(--text-muted)', lineHeight: 1.6, marginBottom: '16px' }}>
             Paste any Base contract address to get a full risk assessment before you approve, deposit, or interact.
           </p>
           <button onClick={onLaunchApp} className="btn btn-outline">Protocol auditor</button>
         </div>
-        <div>
+        <div className="scroll-reveal scroll-delay-3">
           <h3 style={{ fontFamily: 'var(--font-display)', fontSize: '1.2rem', fontWeight: 400, marginBottom: '8px' }}>Built for Base</h3>
           <p style={{ fontSize: '13px', color: 'var(--text-muted)', lineHeight: 1.6, marginBottom: '16px' }}>
             All data flows through Base Mainnet RPC and DeFi Llama — no proprietary indexer, no database, fully verifiable.
@@ -238,7 +242,7 @@ export default function LandingPage({ onLaunchApp, openWalletModal }) {
 
       {/* ── FOOTER ─────────────────────────────────────────── */}
       <div className="divider" />
-      <footer style={{ padding: 'clamp(24px, 4vw, 36px) 0', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
+      <footer className="scroll-reveal" style={{ padding: 'clamp(24px, 4vw, 36px) 0', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
           <img src="/logo.png" alt="Orion" style={{ width: 22, height: 22, borderRadius: '50%', objectFit: 'cover', border: '1px solid var(--border)' }} />
           <span style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-main)' }}>Orion</span>

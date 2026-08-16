@@ -86,12 +86,14 @@ export default function Dashboard({ wallet, openWalletModal, setCurrentView }) {
           </span>
         </div>
 
-        {tab === 'shield'      && <PortfolioShield   wallet={wallet} openWalletModal={openWalletModal} />}
-        {tab === 'liquidation' && <LiquidationShield wallet={wallet} openWalletModal={openWalletModal} />}
-        {tab === 'yield'       && <YieldOptimizer    wallet={wallet} openWalletModal={openWalletModal} />}
-        {tab === 'incentive'   && <IncentiveTracker  wallet={wallet} openWalletModal={openWalletModal} />}
-        {tab === 'protocol'    && <ProtocolAuditor />}
-        {tab === 'settings'    && <Settings />}
+        <div key={tab} className="rise-in">
+          {tab === 'shield'      && <PortfolioShield   wallet={wallet} openWalletModal={openWalletModal} />}
+          {tab === 'liquidation' && <LiquidationShield wallet={wallet} openWalletModal={openWalletModal} />}
+          {tab === 'yield'       && <YieldOptimizer    wallet={wallet} openWalletModal={openWalletModal} />}
+          {tab === 'incentive'   && <IncentiveTracker  wallet={wallet} openWalletModal={openWalletModal} />}
+          {tab === 'protocol'    && <ProtocolAuditor />}
+          {tab === 'settings'    && <Settings />}
+        </div>
       </main>
     </div>
   );
