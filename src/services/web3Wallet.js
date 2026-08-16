@@ -29,16 +29,59 @@ const KNOWN_SPENDERS = {
   '0x8c1a3cf8f83074169fe5d7ad50b978e1cdda1efa': { name: 'Compound V3 Base',     risk: 'Low',    verified: true },
 };
 
-// ── Helper: JSON-RPC via fetch (bypass MetaMask for public reads) ─────────────
+// ── Multi-Endpoint RPC Pool with Automatic Fallback ──────────────────────────
+const RPC_POOL = [
+  BASE_RPC,
+  'https://mainnet.base.org',
+  'https://base.llamarpc.com',
+  'https://1rpc.io/base',
+  'https://base.drpc.org',
+].filter(Boolean);
+
+let workingRpcIndex = 0;
+
 async function rpc(method, params) {
-  const res = await fetch(BASE_RPC, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ jsonrpc: '2.0', id: 1, method, params }),
-  });
-  const { result, error } = await res.json();
-  if (error) throw new Error(error.message || 'RPC error');
-  return result;
+  const pool = [
+    RPC_POOL[workingRpcIndex],
+    ...RPC_POOL.filter((_, idx) => idx !== workingRpcIndex)
+  ];
+
+  for (let i = 0; i < pool.length; i++) {
+    const endpoint = pool[i];
+    try {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 3500);
+
+      const res = await fetch(endpoint, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ jsonrpc: '2.0', id: 1, method, params }),
+        signal: controller.signal,
+      });
+      clearTimeout(timeoutId);
+
+      if (!res.ok) {
+        // Bad status (e.g. 400, 401 from invalid API key) — try next RPC
+        continue;
+      }
+
+      const json = await res.json();
+      if (json.error) {
+        continue;
+      }
+
+      // Remember working endpoint
+      const actualIndex = RPC_POOL.indexOf(endpoint);
+      if (actualIndex !== -1) workingRpcIndex = actualIndex;
+
+      return json.result;
+    } catch {
+      // Network/timeout error — try next RPC in pool
+      continue;
+    }
+  }
+
+  throw new Error(`All Base RPC endpoints failed for ${method}`);
 }
 
 // ── Read ETH balance (real) ──────────────────────────────────────────────────
@@ -97,8 +140,8 @@ async function scanApprovals(address) {
   try {
     const latestHex = await rpc('eth_blockNumber', []);
     const latest = parseInt(latestHex, 16);
-    // Scan last ~100k blocks (~3-4 days on Base)
-    const fromBlock = '0x' + Math.max(0, latest - 100000).toString(16);
+    // Safe block range for Base RPCs (~1-2 days)
+    const fromBlock = '0x' + Math.max(0, latest - 25000).toString(16);
     const paddedOwner = '0x' + address.slice(2).toLowerCase().padStart(64, '0');
 
     for (const token of BASE_TOKENS) {

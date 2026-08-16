@@ -54,16 +54,52 @@ const TOKENS = {
   WETH:   '0x4200000000000000000000000000000000000006',
 };
 
-// ── RPC helpers ───────────────────────────────────────────────────────────────
+// ── Multi-Endpoint RPC Pool with Automatic Fallback ──────────────────────────
+const RPC_POOL = [
+  BASE_RPC,
+  'https://mainnet.base.org',
+  'https://base.llamarpc.com',
+  'https://1rpc.io/base',
+  'https://base.drpc.org',
+].filter(Boolean);
+
+let workingRpcIndex = 0;
+
 async function rpc(method, params) {
-  const res = await fetch(BASE_RPC, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ jsonrpc: '2.0', id: 1, method, params }),
-  });
-  const { result, error } = await res.json();
-  if (error) throw new Error(error.message);
-  return result;
+  const pool = [
+    RPC_POOL[workingRpcIndex],
+    ...RPC_POOL.filter((_, idx) => idx !== workingRpcIndex)
+  ];
+
+  for (let i = 0; i < pool.length; i++) {
+    const endpoint = pool[i];
+    try {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 3500);
+
+      const res = await fetch(endpoint, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ jsonrpc: '2.0', id: 1, method, params }),
+        signal: controller.signal,
+      });
+      clearTimeout(timeoutId);
+
+      if (!res.ok) continue;
+
+      const json = await res.json();
+      if (json.error) continue;
+
+      const actualIndex = RPC_POOL.indexOf(endpoint);
+      if (actualIndex !== -1) workingRpcIndex = actualIndex;
+
+      return json.result;
+    } catch {
+      continue;
+    }
+  }
+
+  throw new Error(`All Base RPC endpoints failed for ${method}`);
 }
 
 async function call(to, data) {
