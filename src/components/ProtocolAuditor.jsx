@@ -74,9 +74,10 @@ function InteractionVerdict({ signal, reason, color }) {
 // ── Preset protocol quick-pick ────────────────────────────────────────────────
 const FEATURED_PROTOCOLS = [
   '0xcf77a3ba9a5ca399b7c97c74d54e5b1beb874e43', // Aerodrome Router
-  '0x2626664c2601f8477d34190c138804968853b018', // Uniswap v3
-  '0xfbb21d0380bee3312b33c4353c8936a0f13ef26c', // Moonwell
-  '0x9c4ec768c28520b50860ea7a15bd7213a9ff58bf', // Compound III
+  '0xedc817a28e8b93b03976fbd4a3ddbc9f7d176c22', // Moonwell mUSDC
+  '0x9c4ec768c28520b50860ea7a15bd7213a9ff58bf', // Compound III USDC
+  '0x8f44fd754285aa6a2b8b9ed6f8245c6371390316', // Seamless Protocol
+  '0x2626664c2601f8477d34190c138804968853b018', // Uniswap V3
   '0x833589fcd6edb6e08f4c7c32d4f71b54bda02913', // USDC
   '0x940181a94a35a4569e4529a3cdfb74e38fd98631', // AERO
 ];
