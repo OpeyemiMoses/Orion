@@ -1,72 +1,194 @@
 # OrionSentinel
 
-**Autonomous DeFi Capital Co-Pilot on Base Mainnet**  
-Built for the [Orion Agents Hackathon](https://orionagents.org/hackathon)
+<div align="center">
+
+![OrionSentinel Banner](src/assets/hero.png)
+
+**Autonomous DeFi Capital Co-Pilot on Base Mainnet**
+
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Network: Base](https://img.shields.io/badge/Network-Base%20Mainnet%20(8453)-0052FF)](https://base.org)
+[![React](https://img.shields.io/badge/Frontend-React%20%2B%20Vite-61DAFB)](https://vitejs.dev)
+[![EIP-6963](https://img.shields.io/badge/Standard-EIP--6963%20Multi--Provider-3C3C3D)](https://eips.ethereum.org/EIPS/eip-6963)
+[![Built for Orion](https://img.shields.io/badge/Hackathon-Orion%20Agents-7C3AED)](https://orionagents.org/hackathon)
+
+*Non-custodial autonomous sentinel that monitors, optimizes, and qualifies your capital across Base DeFi in real time.*
+
+[Live Demo](http://localhost:5173) • [Documentation](#architecture) • [Security Policy](SECURITY.md) • [Contributing](CONTRIBUTING.md)
+
+</div>
 
 ---
 
-## Overview
-
-OrionSentinel is a non-custodial autonomous agent that protects, optimizes, and qualifies a wallet's DeFi capital across Base Mainnet.
-
-### Core Autonomous Modules
-
-| Module | Purpose | Live On-Chain Data Sources |
-|---|---|---|
-| **Liquidation Shield** | Monitors aggregate lending health factors across 4 major Base protocols in real time. Formulates and executes protective repayments before liquidation strikes. | Moonwell (`getAccountSnapshot`), Compound III (`Comet`), Aave V3 (`getUserAccountData`), Seamless Protocol |
-| **Yield Optimizer** | Continuously scans live APYs across hundreds of Base pools, net of gas costs and slippage. Formulates optimal reallocation routes via Aerodrome and Base vaults. | DeFi Llama `/pools`, Aerodrome Router |
-| **Incentive Tracker** | Inspects wallet activity, token holdings, and locked governance votes against active Base ecosystem programs, queuing low-cost qualifying actions. | Base JSON-RPC (`eth_getTransactionCount`, `balanceOf`), Aerodrome, Moonwell |
-| **Approval Shield** | Scans token allowances across Base tokens, calculates overall portfolio threat score, and executes 0-allowance revocations directly via Web3 wallet. | Base JSON-RPC (`eth_getLogs`), Token Contracts |
-| **Protocol Auditor** | Instant security & verification audit for any Base contract address before approving or depositing. | BaseScan API, Bytecode Proxy Detector, DeFi Llama TVL |
-
----
-
-## Key Architecture & Innovations
-
-* **100% Non-Custodial:** OrionSentinel does the continuous monitoring, risk calculation, route discovery, and payload assembly autonomously — but users retain full custody through Web3 wallet signatures.
-* **EIP-6963 Multi-Wallet Provider Discovery:** Isolated provider routing for MetaMask, OKX Wallet, Coinbase Wallet, Rainbow, and Rabby without extension collision or hijacking.
-* **Pure On-Chain Verifiability:** No mocked data or centralized databases — all telemetry is queried live from Base Mainnet RPC and decentralized APIs.
+## 📑 Table of Contents
+- [Overview](#-overview)
+- [The Problem & The Solution](#-the-problem--the-solution)
+- [Autonomous Core Modules](#-autonomous-core-modules)
+- [System Architecture](#-system-architecture)
+- [How OrionSentinel Works Autonomously](#-how-orionsentinel-works-autonomously)
+- [Supported Protocols & Live Data Feeds](#-supported-protocols--live-data-feeds)
+- [Security & Non-Custodial Architecture](#-security--non-custodial-architecture)
+- [Getting Started](#-getting-started)
+- [Environment Configuration](#-environment-configuration)
+- [Roadmap](#-roadmap)
+- [Contributing](#-contributing)
+- [License](#-license)
 
 ---
 
-## Quick Start
+## 🌟 Overview
 
-### 1. Install Dependencies
+**OrionSentinel** is an autonomous DeFi co-pilot engineered natively for Base Mainnet. It transforms passive crypto portfolios into self-defending, yield-maximizing, and incentive-qualifying positions.
+
+Operating continuously across 3 core dimensions:
+1. **Liquidation Shield:** Real-time multi-protocol collateral health monitoring & automated debt repayment routing.
+2. **Yield Optimizer:** Live DeFi Llama pool yield scanning with mathematical net-profit routing (accounting for gas and slippage).
+3. **Incentive Tracker:** Autonomous on-chain qualification gap analysis across active Base reward campaigns.
+
+---
+
+## ⚡ The Problem & The Solution
+
+| The Challenge in DeFi | OrionSentinel Autonomous Solution |
+|---|---|
+| **Liquidation Volatility:** Sudden price drops liquidate borrowing positions across Moonwell, Aave, and Compound if not manually monitored 24/7. | **Continuous Health Sensing:** The agent computes aggregate collateral health across protocols and autonomously formulates debt repayments if health factor falls below 1.5. |
+| **Yield Inefficiency:** Capital sits in low-yield pools because calculating net APY gains after factoring in gas fees and slippage is tedious. | **Mathematical Net-Gain Routing:** The agent continuously parses hundreds of Base pools, executing reallocations only when the net financial benefit is positive. |
+| **Unclaimed Ecosystem Incentives:** Users miss lucrative airdrops and protocol incentives because tracking complex qualification rules across dApps is difficult. | **Automated Criteria Auditing:** The agent directly evaluates transaction breadth, balances, and governance locks against active program criteria, queuing qualifying micro-actions. |
+
+---
+
+## 🛡️ Autonomous Core Modules
+
+### 1. 🚨 Liquidation Shield
+* **Protocols Monitored:** Moonwell (`getAccountSnapshot`), Compound III (`Comet`), Aave V3 (`getUserAccountData`), Seamless Protocol.
+* **Autonomous Math:** Computes aggregate collateral-to-debt ratio in real time.
+* **Protection Trigger:** When Health Factor $< 1.50$, the agent calculates the exact debt reduction delta needed to restore safe margins ($\ge 2.0$) and prepares the protective repayment transaction.
+
+### 2. 📈 Yield Optimizer
+* **Data Ingestion:** Streams real-time pool yields across Base from DeFi Llama's live API.
+* **Decision Formula:**
+  $$\text{Net Yield Gain} = \text{Target APY} - \text{Current APY} - \text{Gas Cost} - \text{Slippage}$$
+* **Execution:** Routes capital reallocations via Aerodrome and Base liquidity vaults.
+
+### 3. 🎁 Incentive Tracker
+* **On-Chain Gap Analysis:** Evaluates wallet activity records (`eth_getTransactionCount`), token holdings (`balanceOf`), and voting locks (`veAERO`).
+* **Active Campaigns:** Aerodrome Season 3 LP Rewards, Base Onchain Summer II, Moonwell WELL Mining, Extra Finance Points.
+* **Action Formulation:** Formats the exact, lowest-gas interaction required to satisfy missing qualification tiers.
+
+### 4. 🔍 Protocol Security Auditor
+* **1-Click Smart Contract Vetting:** Audits any Base address before funds are deposited.
+* **Security Checks:** BaseScan verified source code, EIP-1967 upgradeable proxy detection, independent security audit firms (OpenZeppelin, Trail of Bits, Spearbit, Halborn), and DeFi Llama TVL.
+
+---
+
+## 🏗️ System Architecture
+
+```
+┌─────────────────────────────────────────────────────────────────────────┐
+│                           ORIONSENTINEL AGENT                           │
+│                                                                         │
+│  ┌───────────────────────┐  ┌─────────────────────┐  ┌───────────────┐  │
+│  │  Liquidation Shield   │  │   Yield Optimizer   │  │   Incentive   │  │
+│  │ (Moonwell/Compound)   │  │ (DeFi Llama Pools)  │  │    Tracker    │  │
+│  └───────────┬───────────┘  └──────────┬──────────┘  └───────┬───────┘  │
+└──────────────┼─────────────────────────┼─────────────────────┼──────────┘
+               │                         │                     │
+               ▼                         ▼                     ▼
+┌─────────────────────────────────────────────────────────────────────────┐
+│               ON-CHAIN TELEMETRY & DECISION PIPELINE                    │
+│   • Base JSON-RPC (eth_call, eth_getLogs, eth_getCode)                  │
+│   • Multi-Endpoint Automatic RPC Fallback (Base, LlamaRPC, 1RPC)        │
+│   • EIP-6963 Isolated Multi-Wallet Provider Manager                     │
+└──────────────────────────────────┬──────────────────────────────────────┘
+                                   │
+                                   ▼
+┌─────────────────────────────────────────────────────────────────────────┐
+│                    NON-CUSTODIAL EXECUTION LAYER                        │
+│   • User-Approved Web3 Transaction Signatures (MetaMask/OKX/Coinbase)   │
+│   • BaseScan Verification & Block Explorer Confirmation                 │
+└─────────────────────────────────────────────────────────────────────────┘
+```
+
+---
+
+## 🔒 Security & Non-Custodial Architecture
+
+* **Zero Cloud Key Storage:** OrionSentinel **never** holds, stores, or transmits your private keys.
+* **Autonomous Intelligence + Delegated Execution:** The agent performs 100% of the continuous observation, mathematical modeling, and payload construction autonomously in the background. Transactions are dispatched directly to your Web3 wallet for signing.
+* **EIP-6963 Wallet Isolation:** Native multi-provider detection prevents extensions (like OKX or MetaMask) from hijacking or colliding with each other.
+
+---
+
+## 🚀 Getting Started
+
+### Prerequisites
+- Node.js >= 18.0.0
+- npm or yarn
+
+### Installation
 ```bash
+# Clone the repository
+git clone https://github.com/OpeyemiMoses/Orion.git
+cd Orion
+
+# Install dependencies
 npm install
 ```
 
-### 2. Configure Environment Variables
+### Development
 ```bash
-cp .env.example .env
-```
-
-Edit `.env`:
-```env
-VITE_BASE_RPC_URL=https://base-mainnet.g.alchemy.com/v2/YOUR_ALCHEMY_KEY
-VITE_BASESCAN_API_KEY=YOUR_BASESCAN_API_KEY
-PORT=3001
-BASE_RPC_URL=https://base-mainnet.g.alchemy.com/v2/YOUR_ALCHEMY_KEY
-BASESCAN_API_KEY=YOUR_BASESCAN_API_KEY
-```
-
-### 3. Run Locally
-```bash
-# Start frontend
+# Start the Vite development server
 npm run dev
+# Open http://localhost:5173
+```
 
-# Start backend proxy (optional)
-npm run server
+### Production Build
+```bash
+# Compile optimized production bundle
+npm run build
+
+# Preview production build
+npm run preview
 ```
 
 ---
 
-## Deployment
+## ⚙️ Environment Configuration
 
-* **Frontend:** Configured for Vercel deployment with client-side SPA routing (`vercel.json`).
-* **Backend:** Configured for Render / Node.js cloud hosting (`render.config.yaml`).
+Create a `.env` file in the root directory:
+
+```env
+# Primary Base RPC Endpoint (Alchemy, Infura, QuickNode, or public)
+VITE_BASE_RPC_URL=https://base-mainnet.g.alchemy.com/v2/YOUR_ALCHEMY_KEY
+
+# BaseScan API Key (Optional for faster contract source verification)
+VITE_BASESCAN_API_KEY=YOUR_BASESCAN_KEY
+
+# Backend Server Port (Optional)
+PORT=3001
+```
 
 ---
 
-## License
-MIT License. Built for the Orion Agents Hackathon.
+## 🗺️ Roadmap
+
+- [x] Base Mainnet Multi-Protocol Health Factor Sensing (Moonwell, Compound III, Aave V3, Seamless)
+- [x] Live DeFi Llama Yield Scanner & Gas-Adjusted Rebalancing Engine
+- [x] Autonomous Incentive Criteria Evaluator (Aerodrome, Moonwell, Base Onchain Summer)
+- [x] EIP-6963 Multi-Wallet Provider Isolation
+- [x] Direct On-Chain Execution Pipeline with BaseScan Links
+- [ ] ERC-4337 Session Key Automation for 1-click bounded auto-execution
+- [ ] Cross-chain capital bridging telemetry (Arbitrum, Optimism to Base)
+- [ ] Telegram & Discord real-time liquidation alert bot
+
+---
+
+## 🤝 Contributing
+
+Contributions are welcome! Please review our [Contributing Guidelines](CONTRIBUTING.md) and [Code of Conduct](CODE_OF_CONDUCT.md) before submitting pull requests.
+
+---
+
+## 📜 License
+
+This project is open source and licensed under the [MIT License](LICENSE).
