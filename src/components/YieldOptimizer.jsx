@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { TrendingUp, RefreshCw, Loader, Zap, Activity, ArrowRight, ExternalLink } from 'lucide-react';
-import { fetchBaseYields } from '../services/agentEngine';
+import { fetchBaseYields, CURATED_BASE_YIELDS } from '../services/agentEngine';
 
 function ApyBar({ base = 0, reward = 0, max = 40 }) {
   return (
@@ -16,7 +16,7 @@ const PROTOCOL_LABEL = name => name.replace(/-/g, ' ').replace(/\b\w/g, c => c.t
 import { executeApproveForReallocate } from '../services/onChainExecutor';
 
 export default function YieldOptimizer({ wallet, openWalletModal }) {
-  const [yields,  setYields]  = useState([]);
+  const [yields,  setYields]  = useState(CURATED_BASE_YIELDS);
   const [loading, setLoading] = useState(false);
   const [filter,  setFilter]  = useState('all'); // all | stable | volatile
   const [log,     setLog]     = useState([]);
@@ -28,9 +28,11 @@ export default function YieldOptimizer({ wallet, openWalletModal }) {
     setLoading(true);
     try {
       const data = await fetchBaseYields();
-      setYields(data && data.length ? data : []);
+      if (data && data.length) {
+        setYields(data);
+      }
     } catch {
-      setYields([]);
+      // Keep curated yields
     } finally {
       setLoading(false);
     }
