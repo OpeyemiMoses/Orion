@@ -350,19 +350,36 @@ export function buildIncentivePrograms(onChain, lendingPositions) {
 // ── DeFi Llama yields ─────────────────────────────────────────────────────────
 export async function fetchBaseYields() {
   try {
-    const res = await fetch(LLAMA_YIELDS);
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 3000);
+
+    const res = await fetch(LLAMA_YIELDS, { signal: controller.signal });
+    clearTimeout(timeoutId);
+
     if (!res.ok) throw new Error('DeFi Llama unavailable');
-    const { data } = await res.json();
-    return data
+    const json = await res.json();
+    const data = json?.data;
+    if (!data || !Array.isArray(data)) throw new Error('Invalid data format');
+
+    const basePools = data
       .filter(p => p.chain === 'Base' && p.apy > 0 && p.tvlUsd > 100_000)
       .map(p => ({
-        pool: p.pool, protocol: p.project, symbol: p.symbol,
-        apy: p.apy, apyBase: p.apyBase || 0, apyReward: p.apyReward || 0,
-        tvl: p.tvlUsd, stablecoin: !!p.stablecoin, ilRisk: p.ilRisk,
+        pool: p.pool,
+        protocol: p.project || 'unknown',
+        symbol: p.symbol || 'LP',
+        apy: Number(p.apy) || 0,
+        apyBase: Number(p.apyBase) || 0,
+        apyReward: Number(p.apyReward) || 0,
+        tvl: Number(p.tvlUsd) || 0,
+        stablecoin: !!p.stablecoin,
+        ilRisk: p.ilRisk,
         apyPct7d: p.apyPct7D,
       }))
       .sort((a, b) => b.tvl - a.tvl);
-  } catch {
+
+    return basePools.length > 0 ? basePools : DEMO_YIELDS;
+  } catch (err) {
+    console.warn('DeFi Llama live yields timed out or failed, using curated Base pools:', err.message);
     return DEMO_YIELDS;
   }
 }

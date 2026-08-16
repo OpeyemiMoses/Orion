@@ -4,63 +4,63 @@ import { ArrowRight, ShieldAlert, TrendingUp, Gift, ScanSearch } from 'lucide-re
 /* ── 3D Dashboard Mockup ─────────────────────────────────────── */
 function DashboardMockup() {
   return (
-    <div className="mockup-3d">
-      <div className="mockup-3d-inner">
+    <div className="mockup-3d" style={{ width: '100%', maxWidth: '520px' }}>
+      <div className="mockup-3d-inner" style={{ width: '100%' }}>
         {/* Browser chrome */}
-        <div style={{ background: 'var(--bg-card)', borderBottom: '1px solid var(--border)', padding: '9px 14px', display: 'flex', alignItems: 'center', gap: '6px' }}>
-          <div style={{ width: 7, height: 7, borderRadius: '50%', background: '#fca5a5' }} />
-          <div style={{ width: 7, height: 7, borderRadius: '50%', background: '#fde68a' }} />
-          <div style={{ width: 7, height: 7, borderRadius: '50%', background: '#bbf7d0' }} />
-          <span style={{ fontSize: '10px', color: 'var(--text-dim)', marginLeft: 8, fontFamily: 'var(--font-mono)' }}>
+        <div style={{ background: 'var(--bg-card)', borderBottom: '1px solid var(--border)', padding: '11px 16px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <div style={{ width: 8, height: 8, borderRadius: '50%', background: '#fca5a5' }} />
+          <div style={{ width: 8, height: 8, borderRadius: '50%', background: '#fde68a' }} />
+          <div style={{ width: 8, height: 8, borderRadius: '50%', background: '#bbf7d0' }} />
+          <span style={{ fontSize: '11px', color: 'var(--text-dim)', marginLeft: 10, fontFamily: 'var(--font-mono)' }}>
             orion.app
           </span>
-          <span style={{ marginLeft: 'auto', fontSize: '9px', color: '#16a34a', fontWeight: 600 }}>● LIVE</span>
+          <span style={{ marginLeft: 'auto', fontSize: '10px', color: '#16a34a', fontWeight: 600 }}>● LIVE</span>
         </div>
 
         {/* App shell */}
-        <div style={{ display: 'flex', height: '270px' }}>
+        <div style={{ display: 'flex', minHeight: '320px' }}>
           {/* Sidebar */}
-          <div style={{ width: '110px', background: 'var(--bg-sidebar)', borderRight: '1px solid var(--border)', padding: '10px 0', fontSize: '10px', flexShrink: 0 }}>
-            <div style={{ padding: '3px 10px 6px', fontSize: '8px', letterSpacing: '0.08em', color: 'var(--text-dim)', fontWeight: 600 }}>AGENT MODULES</div>
+          <div style={{ width: '135px', background: 'var(--bg-sidebar)', borderRight: '1px solid var(--border)', padding: '14px 0', fontSize: '11px', flexShrink: 0 }}>
+            <div style={{ padding: '4px 12px 6px', fontSize: '9px', letterSpacing: '0.08em', color: 'var(--text-dim)', fontWeight: 600 }}>AGENT MODULES</div>
             {[
               ['Approval Shield', false],
               ['Liquidation Shield', true],
               ['Yield Optimizer', false],
               ['Incentive Tracker', false],
             ].map(([item, active]) => (
-              <div key={item} style={{ padding: '5px 10px', color: active ? 'var(--text-main)' : 'var(--text-dim)', fontWeight: active ? 600 : 400, background: active ? '#ebebea' : 'none' }}>
+              <div key={item} style={{ padding: '6px 12px', color: active ? 'var(--text-main)' : 'var(--text-dim)', fontWeight: active ? 600 : 400, background: active ? '#ebebea' : 'none' }}>
                 {item}
               </div>
             ))}
-            <div style={{ padding: '3px 10px 6px', fontSize: '8px', letterSpacing: '0.08em', color: 'var(--text-dim)', fontWeight: 600, marginTop: 6 }}>TOOLS</div>
+            <div style={{ padding: '4px 12px 6px', fontSize: '9px', letterSpacing: '0.08em', color: 'var(--text-dim)', fontWeight: 600, marginTop: 8 }}>TOOLS</div>
             {['Protocol Auditor', 'Settings'].map(item => (
-              <div key={item} style={{ padding: '5px 10px', color: 'var(--text-dim)' }}>{item}</div>
+              <div key={item} style={{ padding: '6px 12px', color: 'var(--text-dim)' }}>{item}</div>
             ))}
           </div>
 
           {/* Content */}
-          <div style={{ flex: 1, padding: '12px', overflow: 'hidden' }}>
-            <div style={{ fontSize: '11px', fontWeight: 700, marginBottom: '1px' }}>Liquidation Shield</div>
-            <div style={{ fontSize: '9px', color: 'var(--text-muted)', marginBottom: '10px' }}>
+          <div style={{ flex: 1, padding: '16px', overflow: 'hidden' }}>
+            <div style={{ fontSize: '13px', fontWeight: 700, marginBottom: '2px' }}>Liquidation Shield</div>
+            <div style={{ fontSize: '10px', color: 'var(--text-muted)', marginBottom: '14px' }}>
               Moonwell · Compound III · Aave V3 · Seamless
             </div>
 
             {/* Health factor ring (simplified) */}
-            <div style={{ display: 'flex', gap: '10px', marginBottom: '10px', alignItems: 'center' }}>
-              <div style={{ position: 'relative', width: 44, height: 44, flexShrink: 0 }}>
-                <svg width="44" height="44" viewBox="0 0 44 44" style={{ transform: 'rotate(-90deg)' }}>
-                  <circle cx="22" cy="22" r="17" fill="none" stroke="var(--border)" strokeWidth="4" />
-                  <circle cx="22" cy="22" r="17" fill="none" stroke="#16a34a" strokeWidth="4" strokeDasharray="78 107" strokeLinecap="round" />
+            <div style={{ display: 'flex', gap: '12px', marginBottom: '14px', alignItems: 'center' }}>
+              <div style={{ position: 'relative', width: 52, height: 52, flexShrink: 0 }}>
+                <svg width="52" height="52" viewBox="0 0 52 52" style={{ transform: 'rotate(-90deg)' }}>
+                  <circle cx="26" cy="26" r="20" fill="none" stroke="var(--border)" strokeWidth="5" />
+                  <circle cx="26" cy="26" r="20" fill="none" stroke="#16a34a" strokeWidth="5" strokeDasharray="94 126" strokeLinecap="round" />
                 </svg>
-                <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '8px', fontWeight: 700, color: '#16a34a' }}>2.1</div>
+                <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '10px', fontWeight: 700, color: '#16a34a' }}>2.1</div>
               </div>
               <div>
-                <div style={{ fontSize: '8px', color: 'var(--text-dim)', marginBottom: '2px' }}>HEALTH FACTOR</div>
-                <span style={{ fontSize: '8px', background: '#dcfce7', color: '#15803d', padding: '1px 5px', borderRadius: '4px', fontWeight: 600 }}>SAFE</span>
+                <div style={{ fontSize: '9px', color: 'var(--text-dim)', marginBottom: '3px' }}>HEALTH FACTOR</div>
+                <span style={{ fontSize: '9px', background: '#dcfce7', color: '#15803d', padding: '2px 6px', borderRadius: '4px', fontWeight: 600 }}>SAFE</span>
               </div>
-              <div style={{ marginLeft: 'auto', fontSize: '8px', color: 'var(--text-dim)' }}>
-                <div>Supplied: <span style={{ color: '#16a34a' }}>$11,360</span></div>
-                <div>Borrowed: <span style={{ color: '#dc2626' }}>$3,200</span></div>
+              <div style={{ marginLeft: 'auto', fontSize: '10px', color: 'var(--text-dim)' }}>
+                <div>Supplied: <span style={{ color: '#16a34a', fontWeight: 600 }}>$11,360</span></div>
+                <div>Borrowed: <span style={{ color: '#dc2626', fontWeight: 600 }}>$3,200</span></div>
               </div>
             </div>
 
@@ -69,11 +69,11 @@ function DashboardMockup() {
               ['Moonwell', 'mUSDC', '$8,000', '$3,200', 'SAFE'],
               ['Aave V3',  'Multi', '$3,360', '$0',    'SAFE'],
             ].map(([proto, market, supplied, borrowed, status]) => (
-              <div key={proto} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '4px 0', borderBottom: '1px solid var(--border)', fontSize: '9px' }}>
+              <div key={proto} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '6px 0', borderBottom: '1px solid var(--border)', fontSize: '11px' }}>
                 <span style={{ fontWeight: 600 }}>{proto}</span>
-                <span style={{ color: 'var(--text-dim)' }}>{market}</span>
-                <span style={{ color: '#16a34a' }}>{supplied}</span>
-                <span style={{ color: borrowed === '$0' ? 'var(--text-dim)' : '#dc2626' }}>{borrowed}</span>
+                <span style={{ color: 'var(--text-dim)', fontSize: '10px' }}>{market}</span>
+                <span style={{ color: '#16a34a', fontWeight: 500 }}>{supplied}</span>
+                <span style={{ color: borrowed === '$0' ? 'var(--text-dim)' : '#dc2626', fontWeight: 500 }}>{borrowed}</span>
               </div>
             ))}
           </div>
@@ -85,12 +85,12 @@ function DashboardMockup() {
 
 export default function LandingPage({ onLaunchApp, openWalletModal }) {
   return (
-    <div style={{ maxWidth: '1100px', margin: '0 auto', padding: '0 clamp(20px, 4vw, 48px)' }}>
+    <div style={{ maxWidth: '1180px', margin: '0 auto', padding: '0 clamp(20px, 4vw, 48px)' }}>
 
       {/* ── HERO ───────────────────────────────────────────── */}
       <section className="hero-grid" style={{
         display: 'grid',
-        gridTemplateColumns: 'minmax(0, 1fr) minmax(0, 460px)',
+        gridTemplateColumns: 'minmax(0, 1fr) minmax(0, 520px)',
         alignItems: 'center',
         gap: 'clamp(32px, 5vw, 64px)',
         padding: 'clamp(48px, 8vw, 96px) 0 clamp(48px, 6vw, 72px)',

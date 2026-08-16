@@ -26,9 +26,14 @@ export default function YieldOptimizer({ wallet, openWalletModal }) {
 
   const load = useCallback(async () => {
     setLoading(true);
-    const data = await fetchBaseYields();
-    setYields(data);
-    setLoading(false);
+    try {
+      const data = await fetchBaseYields();
+      setYields(data && data.length ? data : []);
+    } catch {
+      setYields([]);
+    } finally {
+      setLoading(false);
+    }
   }, []);
 
   useEffect(() => { load(); }, [load]);
