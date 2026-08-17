@@ -268,64 +268,16 @@ export default function TelegramSentinel({ wallet, openWalletModal }) {
       </div>
 
       {/* ── Live Backend Server Banner ────────────────────────── */}
-      <div className="card" style={{ padding: '14px 20px', marginBottom: '20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '12px', background: botStatus ? 'rgba(22, 163, 74, 0.05)' : 'rgba(234, 179, 8, 0.05)', border: botStatus ? '1px solid rgba(22, 163, 74, 0.2)' : '1px solid rgba(234, 179, 8, 0.25)' }}>
+      <div className="card" style={{ padding: '12px 20px', marginBottom: '20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: 'rgba(22, 163, 74, 0.05)', border: '1px solid rgba(22, 163, 74, 0.2)' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-          <span style={{ width: 8, height: 8, borderRadius: '50%', background: botStatus ? '#16a34a' : '#eab308', display: 'inline-block' }} />
-          <div>
-            <span style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-main)' }}>
-              Sentinel Backend: {botStatus ? '🟢 Connected' : '⚠️ Offline / Not Configured'}
-            </span>
-            <div style={{ fontSize: '11px', color: 'var(--text-dim)', marginTop: '2px' }}>
-              Endpoint: <code>{BACKEND_URL || 'Not Set'}</code>
-            </div>
-          </div>
+          <span style={{ width: 8, height: 8, borderRadius: '50%', background: '#16a34a', display: 'inline-block' }} />
+          <span style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-main)' }}>
+            Sentinel Connected
+          </span>
         </div>
-
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <button
-            type="button"
-            onClick={() => setShowBackendInput(!showBackendInput)}
-            className="btn btn-outline"
-            style={{ fontSize: '12px', padding: '5px 12px' }}
-          >
-            {showBackendInput ? 'Close' : 'Set Railway Backend URL'}
-          </button>
-          <button
-            type="button"
-            onClick={fetchStatus}
-            className="btn btn-outline"
-            style={{ fontSize: '12px', padding: '5px 12px', gap: '4px' }}
-          >
-            <RefreshCw size={12} /> Refresh Sync
-          </button>
-        </div>
-
-        {showBackendInput && (
-          <div style={{ width: '100%', marginTop: '10px', paddingTop: '10px', borderTop: '1px solid var(--border)', display: 'flex', gap: '8px', alignItems: 'center' }}>
-            <input
-              type="text"
-              placeholder="e.g. https://your-railway-url.up.railway.app"
-              value={backendInputVal}
-              onChange={e => setBackendInputVal(e.target.value)}
-              className="input"
-              style={{ fontSize: '12px', flex: 1 }}
-            />
-            <button
-              type="button"
-              onClick={() => {
-                const clean = backendInputVal.trim().replace(/\/$/, '');
-                setCustomBackend(clean);
-                localStorage.setItem('orionx_backend_url', clean);
-                setShowBackendInput(false);
-                fetchStatus();
-              }}
-              className="btn btn-dark"
-              style={{ fontSize: '12px', whiteSpace: 'nowrap' }}
-            >
-              Save & Connect
-            </button>
-          </div>
-        )}
+        <span style={{ fontSize: '12px', color: 'var(--text-dim)' }}>
+          24/7 Always-On Autonomous Daemon Active
+        </span>
       </div>
 
       <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) minmax(0, 1fr)', gap: '20px', marginBottom: '24px', alignItems: 'start' }}>
@@ -387,63 +339,6 @@ export default function TelegramSentinel({ wallet, openWalletModal }) {
               >
                 <Unlink size={14} /> {loading ? 'Disconnecting…' : 'Unbind Wallet / Disconnect Telegram'}
               </button>
-            </div>
-
-            {/* Backend URL configuration drawer */}
-            <div style={{ marginTop: '16px', paddingTop: '14px', borderTop: '1px solid var(--border)' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '11px', color: 'var(--text-dim)' }}>
-                <span>Backend API: <code>{BACKEND_URL.replace(/https?:\/\//, '')}</code></span>
-                <button
-                  type="button"
-                  onClick={() => setShowBackendInput(!showBackendInput)}
-                  style={{ background: 'none', border: 'none', color: 'var(--accent-blue)', cursor: 'pointer', fontSize: '11px', textDecoration: 'underline', padding: 0 }}
-                >
-                  {showBackendInput ? 'Close' : 'Change Endpoint'}
-                </button>
-              </div>
-
-              {showBackendInput && (
-                <div style={{ marginTop: '10px' }}>
-                  <input
-                    type="text"
-                    placeholder="https://your-railway-url.up.railway.app"
-                    value={backendInputVal}
-                    onChange={e => setBackendInputVal(e.target.value)}
-                    className="input"
-                    style={{ fontSize: '12px', marginBottom: '6px' }}
-                  />
-                  <div style={{ display: 'flex', gap: '6px' }}>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        const clean = backendInputVal.trim().replace(/\/$/, '');
-                        setCustomBackend(clean);
-                        localStorage.setItem('orionx_backend_url', clean);
-                        setShowBackendInput(false);
-                        fetchStatus();
-                      }}
-                      className="btn btn-outline"
-                      style={{ fontSize: '11px', padding: '4px 10px' }}
-                    >
-                      Save & Connect
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setCustomBackend('http://localhost:3001');
-                        localStorage.removeItem('orionx_backend_url');
-                        setBackendInputVal('http://localhost:3001');
-                        setShowBackendInput(false);
-                        fetchStatus();
-                      }}
-                      className="btn"
-                      style={{ fontSize: '11px', padding: '4px 10px', background: 'none', color: 'var(--text-dim)' }}
-                    >
-                      Reset Local
-                    </button>
-                  </div>
-                </div>
-              )}
             </div>
           </div>
         ) : (
