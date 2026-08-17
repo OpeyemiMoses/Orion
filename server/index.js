@@ -161,7 +161,7 @@ app.post('/api/telegram/test-alert', async (req, res) => {
     type,
     title: 'Test Sentinel Push Notification',
     message,
-    actionUrl: 'http://localhost:5173',
+    actionUrl: process.env.ALLOWED_ORIGIN || 'https://orionx-agent.vercel.app',
   });
   res.json({ ok: true, message: 'Alert dispatched to bound Telegram chats' });
 });

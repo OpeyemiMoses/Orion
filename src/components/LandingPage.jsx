@@ -67,7 +67,7 @@ function DashboardMockup() {
             {/* Protocol rows */}
             {[
               ['Moonwell', 'mUSDC', '$8,000', '$3,200', 'SAFE'],
-              ['Aave V3',  'Multi', '$3,360', '$0',    'SAFE'],
+              ['Aave V3', 'Multi', '$3,360', '$0', 'SAFE'],
             ].map(([proto, market, supplied, borrowed, status]) => (
               <div key={proto} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '6px 0', borderBottom: '1px solid var(--border)', fontSize: '11px' }}>
                 <span style={{ fontWeight: 600 }}>{proto}</span>
@@ -248,7 +248,7 @@ export default function LandingPage({ onLaunchApp, openWalletModal }) {
           <span style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-main)' }}>OrionX</span>
         </div>
         <span style={{ fontSize: '11px', color: 'var(--text-dim)' }}>
-          Built by <a href="https://github.com/OpeyemiMoses" target="_blank" rel="noreferrer" style={{ color: 'var(--text-muted)', textDecoration: 'underline' }}>OpeyemiMoses</a> for Orion Agents Hackathon · Base Mainnet · {new Date().getFullYear()}
+          Built by <a href="https://github.com/OpeyemiMoses" target="_blank" rel="noreferrer" style={{ color: 'var(--text-muted)', textDecoration: 'underline' }}>Yemi</a> for Orion Agents Hackathon · Base Mainnet · {new Date().getFullYear()}
         </span>
         <div style={{ display: 'flex', gap: '16px' }}>
           <a href="https://github.com/OpeyemiMoses/Orion" target="_blank" rel="noreferrer" style={{ fontSize: '12px', color: 'var(--text-muted)', textDecoration: 'none' }}>GitHub</a>

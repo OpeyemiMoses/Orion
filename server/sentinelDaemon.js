@@ -86,7 +86,7 @@ async function evaluateWalletRisk(subscriber) {
       type: 'liquidation',
       title: 'Liquidation Risk Warning',
       message: `Your aggregate Health Factor on Base has dropped to <b>${mockHealthFactor.toFixed(2)}</b> (below 1.50 threshold).\n\n<b>Recommended Action:</b> Repay $500 USDC on Moonwell to restore safety buffer to >= 2.0.`,
-      actionUrl: 'http://localhost:5173',
+      actionUrl: process.env.ALLOWED_ORIGIN || 'https://orionx-agent.vercel.app',
     });
   }
 }
@@ -101,7 +101,7 @@ async function checkBaseYieldAnomalies(subscribersList) {
       type: 'yield',
       title: 'High-Yield Opportunity Detected',
       message: `New high-yield pool detected on Base:\n<b>Aerodrome AERO/USDC: 34.80% APY</b> ($22.8M TVL).\n\nNet gain after gas & slippage: <b>+10.78% APY</b> over current allocation.`,
-      actionUrl: 'http://localhost:5173',
+      actionUrl: process.env.ALLOWED_ORIGIN || 'https://orionx-agent.vercel.app',
     });
     return true;
   }

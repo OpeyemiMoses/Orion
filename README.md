@@ -14,7 +14,7 @@
 
 *Non-custodial autonomous sentinel that monitors, optimizes, and qualifies your capital across Base DeFi in real time.*
 
-[Live Demo](http://localhost:5173) | [GitHub Repository](https://github.com/OpeyemiMoses/Orion) | [Security Policy](SECURITY.md) | [Contributing](CONTRIBUTING.md)
+[Live Demo (orionx-agent.vercel.app)](https://orionx-agent.vercel.app/) | [GitHub Repository](https://github.com/OpeyemiMoses/Orion) | [Security Policy](SECURITY.md) | [Contributing](CONTRIBUTING.md)
 
 </div>
 
