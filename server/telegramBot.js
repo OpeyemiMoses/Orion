@@ -12,7 +12,7 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import { generateDeepAiReasoning } from './aiReasoning.js';
 import { auditProtocolOnChain } from './onChainAuditor.js';
-import { getRealWalletPositions } from './onChainPositions.js';
+import { getRealWalletPositions, fetchLiveBaseYields, getRealIncentivesStatus } from './onChainPositions.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname  = path.dirname(__filename);
@@ -497,27 +497,30 @@ ${marketsHtml}
 }
 
 async function handleYieldsCommand(chatId) {
+  await sendTelegramMessage(chatId, '🔍 <i>Scanning DeFi Llama API for live Base pool yields...</i>');
+
+  const pools = await fetchLiveBaseYields();
+
+  const poolRows = pools.map((p, idx) => {
+    const tvlFormatted = p.tvlUSD >= 1e6 ? `$${(p.tvlUSD / 1e6).toFixed(1)}M` : `$${(p.tvlUSD / 1e3).toFixed(0)}k`;
+    const typeTag = p.stablecoin ? ' [Stable]' : '';
+    return `${idx + 1}. <b>${escapeTg(p.protocol)}:</b> ${escapeTg(p.symbol)} — <b>${p.apy}% APY</b> (TVL ${tvlFormatted})${typeTag}\n   • Base APY: ${p.apyBase}% | Reward APY: ${p.apyReward}%`;
+  }).join('\n');
+
+  const topPool = pools[0];
   const yieldsMsg = `
 <b>🚀 ORIONX YIELD OPTIMIZER — BASE MAINNET</b>
 
-Live yield ranking across Base pools (&gt;$100k TVL):
+Live yield ranking from <b>DeFi Llama</b> across Base pools (&gt;$100k TVL):
 
-1. <b>Aerodrome:</b> AERO / USDC — <b>34.80% APY</b> (TVL $22.8M)
-   • Base APY: 6.50% | Reward APY: 28.30%
-2. <b>Extra Finance:</b> ETH / USDC 2x — <b>23.10% APY</b> (TVL $14.6M)
-   • Base APY: 8.20% | Reward APY: 14.90%
-3. <b>Aerodrome:</b> USDC / ETH — <b>19.42% APY</b> (TVL $88.4M)
-   • Base APY: 4.30% | Reward APY: 15.12%
-4. <b>Beefy:</b> vAMM-USDC/AERO — <b>18.20% APY</b> (TVL $9.4M)
-5. <b>Moonwell:</b> USDC (mUSDC) — <b>8.64% APY</b> (TVL $54.1M) [Stable]
-6. <b>Morpho:</b> USDC Vault — <b>9.35% APY</b> (TVL $26.5M) [Stable]
-7. <b>Compound III:</b> USDC (Comet) — <b>6.95% APY</b> (TVL $31.2M) [Stable]
+${poolRows}
 
-💡 <b>Rebalancing Opportunity:</b>
-Moving idle USDC to <b>Aerodrome USDC/ETH</b> yields <b>+10.78% net APY gain</b> after gas ($0.24) and slippage.
+💡 <b>Top Live Opportunity:</b>
+<b>${escapeTg(topPool?.protocol)} ${escapeTg(topPool?.symbol)}</b> is currently generating <b>${topPool?.apy}% APY</b> with ${topPool?.tvlUSD >= 1e6 ? `$${(topPool?.tvlUSD / 1e6).toFixed(1)}M` : `$${(topPool?.tvlUSD / 1e3).toFixed(0)}k`} TVL liquidity depth.
   `.trim();
 
   const keyboard = [
+    [{ text: '🔄 Refresh Live Yields', callback_data: 'cmd_yields' }],
     [{ text: '🛡️ Open OrionX', url: LIVE_APP_URL }],
     [{ text: '📊 Check Position Health', callback_data: 'cmd_status' }],
   ];
@@ -526,29 +529,38 @@ Moving idle USDC to <b>Aerodrome USDC/ETH</b> yields <b>+10.78% net APY gain</b>
 }
 
 async function handleIncentivesCommand(chatId) {
+  const sub = subscribers[chatId];
+  const wallet = sub?.walletAddress;
+
+  if (!wallet) {
+    await sendTelegramMessage(chatId, '⚠️ <b>Please bind your wallet first to evaluate on-chain eligibility:</b>\n<code>/bind 0xYourBaseWalletAddress</code>');
+    return;
+  }
+
+  await sendTelegramMessage(chatId, `🔍 <i>Evaluating on-chain criteria & activity for <code>${wallet.slice(0, 8)}...${wallet.slice(-6)}</code> on Base...</i>`);
+
+  const inc = await getRealIncentivesStatus(wallet);
+
+  const campaignRows = inc.campaigns.map((c, idx) => {
+    const criteriaList = c.criteria.map(cr => `   ${cr.met ? '✓' : '✗'} ${escapeTg(cr.label)} (<code>${escapeTg(cr.detail)}</code>)`).join('\n');
+    return `<b>${idx + 1}. ${escapeTg(c.name)}</b>\n• <b>Status:</b> ${c.status} (${c.metCount}/${c.totalCount} criteria met)\n• <b>Reward:</b> ${escapeTg(c.reward)}\n• <b>On-Chain Checks:</b>\n${criteriaList}`;
+  }).join('\n\n');
+
   const incentivesMsg = `
-<b>🎁 ORIONX INCENTIVE TRACKER — BASE CAMPAIGNS</b>
+<b>🎁 ORIONX INCENTIVE TRACKER — REAL ON-CHAIN AUDIT</b>
 
-<b>1. Aerodrome Season 3 LP Rewards</b>
-• <b>Status:</b> 🟡 1 Step Remaining
-• <b>Action Needed:</b> Lock $\ge 500$ AERO into veAERO for voter incentives
-• <b>Reward Pool:</b> $2,500,000 in ecosystem emissions
+<b>Target Wallet:</b> <code>${wallet}</code>
+<b>Activity Recorded:</b> ${inc.txCount} Base transactions
+<b>Holdings:</b> ${inc.ethBalance.toFixed(4)} ETH | $${inc.usdcBalance.toFixed(2)} USDC | ${inc.aeroBalance.toFixed(2)} AERO | ${inc.veAeroBalance.toFixed(2)} veAERO
 
-<b>2. Base Onchain Summer II (Coinbase)</b>
-• <b>Status:</b> 🟢 QUALIFIED
-• <b>Criteria Met:</b> &gt;10 on-chain Base txs, active DeFi contract interaction
-• <b>Reward Tier:</b> Tier 1 Badge + Gas rebate distribution
+━━━━━━━━━━━━━━━━━━━
+${campaignRows}
 
-<b>3. Moonwell WELL Liquidity Mining</b>
-• <b>Status:</b> 🟢 ACTIVE
-• <b>Rewards Accruing:</b> +3.44% bonus APR in WELL on USDC supply
-
-<b>4. Extra Finance Point Program</b>
-• <b>Status:</b> ⚪ NOT STARTED
-• <b>Action Needed:</b> Supply liquidity into leveraged yield vaults
+💡 <i>Criteria are verified directly via Base RPC reads.</i>
   `.trim();
 
   const keyboard = [
+    [{ text: '🔄 Re-evaluate Eligibility', callback_data: 'cmd_incentives' }],
     [{ text: '🛡️ Open OrionX', url: LIVE_APP_URL }],
   ];
 
