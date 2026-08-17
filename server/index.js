@@ -177,8 +177,6 @@ app.get('/api/daemon/logs', (_, res) => {
   });
 });
 
-import { auditProtocolOnChain } from './onChainAuditor.js';
-
 // ── 3. Deep AI Protocol Reasoning API ─────────────────────────────────────────
 // POST /api/ai/audit
 app.post('/api/ai/audit', (req, res) => {
