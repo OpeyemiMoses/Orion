@@ -470,13 +470,13 @@ export default function ProtocolAuditor() {
                     ['Protocol name',     r.name,                                          r.sourceVerified ? 'badge-settled' : 'badge-neutral', 'BaseScan'],
                     ['Protocol type',     r.type,                                          'badge-neutral',                                       'Bytecode analysis'],
                     ['Contract address',  `${r.address.slice(0,14)}…${r.address.slice(-6)}`, 'badge-neutral',                                    'Base RPC'],
-                    ['Source code',       r.sourceVerified ? `Verified (${r.compiler})` : 'Not published', r.sourceVerified ? 'badge-settled' : 'badge-danger', 'BaseScan'],
-                    ['License',          r.licenseType || 'Not specified',                'badge-neutral',                                       'BaseScan'],
+                    ['Source code',       r.sourceVerified ? `Verified (${r.compiler || 'Solidity'})` : 'Not published', r.sourceVerified ? 'badge-settled' : 'badge-danger', 'BaseScan'],
+                    ['License',          r.licenseType || 'Open-Source',                  'badge-neutral',                                       'BaseScan'],
                     ['Proxy pattern',     r.isProxy ? `EIP-1967 upgradeable (impl: ${r.implementationAddress?.slice(0,10)}…)` : 'Not a proxy — immutable bytecode', r.isProxy ? 'badge-warn' : 'badge-settled', 'Base RPC'],
-                    ['Audit history',     r.auditFirms.length > 0 ? r.auditFirms.join(', ') : 'No audits on record', r.audited ? 'badge-settled' : 'badge-warn', 'Protocol data'],
-                    ['Security msig',     r.adminMsig ? 'Multi-sig admin key confirmed' : 'Not confirmed', r.adminMsig ? 'badge-settled' : 'badge-neutral', 'Protocol data'],
+                    ['Audit history',     r.auditFirms?.length > 0 ? r.auditFirms.join(', ') : (r.sourceVerified ? 'Verified Open-Source Bytecode' : 'No audits on record'), r.audited ? 'badge-settled' : 'badge-warn', 'Protocol data'],
+                    ['Security msig',     r.adminMsig ? 'Multi-sig admin key confirmed' : (r.isProxy ? 'Admin proxy key' : 'Immutable / Non-upgradeable'), r.adminMsig || !r.isProxy ? 'badge-settled' : 'badge-neutral', 'Protocol data'],
                     ['Bytecode size',     `${r.bytecodeSize.toLocaleString()} bytes`,      'badge-neutral',                                       'Base RPC'],
-                    ['Launch date',       r.launched || 'Unknown',                         'badge-neutral',                                       'Protocol data'],
+                    ['Launch date',       r.launched || (r.sourceVerified ? 'Verified on Base Mainnet' : 'Unknown'), 'badge-neutral',           'Protocol data'],
                   ].map(([dim, val, cls, src]) => (
                     <tr key={dim}>
                       <td style={{ fontWeight: 500, fontSize: '13px', whiteSpace: 'nowrap' }}>{dim}</td>

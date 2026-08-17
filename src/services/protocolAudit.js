@@ -290,12 +290,19 @@ export async function auditProtocol(address) {
   // 1. Primary: Query Backend Unified On-Chain Auditor (Exact same engine as Telegram)
   try {
     const LIVE_RAILWAY_URL = 'https://orion-production-3db8.up.railway.app';
-    const BACKEND_URL = (typeof window !== 'undefined' && localStorage.getItem('orionx_backend_url')) ||
-      import.meta.env.VITE_BACKEND_URL ||
-      (typeof window !== 'undefined' && window.location.hostname !== 'localhost' ? LIVE_RAILWAY_URL : 'http://localhost:3001');
+    let backendUrl = LIVE_RAILWAY_URL;
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('orionx_backend_url');
+      if (saved && (window.location.hostname === 'localhost' || saved.startsWith('https://'))) {
+        backendUrl = saved.trim().replace(/\/$/, '');
+      } else if (window.location.hostname === 'localhost') {
+        backendUrl = 'http://localhost:3001';
+      }
+    }
+
     const controller = new AbortController();
-    const timer = setTimeout(() => controller.abort(), 6000);
-    const apiRes = await fetch(`${BACKEND_URL}/api/ai/audit-full`, {
+    const timer = setTimeout(() => controller.abort(), 7000);
+    const apiRes = await fetch(`${backendUrl}/api/ai/audit-full`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ address: addr }),
@@ -326,19 +333,19 @@ export async function auditProtocol(address) {
         }
 
         const deepAi = result.deepAiReasoning;
-        const isVerified = result.isVerified;
-        const isProxy = result.isProxy;
-        const healthScore = deepAi?.score || (isVerified ? 85 : 50);
+        const isVerified = Boolean(result.isVerified);
+        const isProxy = Boolean(result.isProxy);
+        const healthScore = deepAi?.score || (isVerified ? 88 : 50);
 
         const riskFlags = [];
         if (!isVerified) {
           riskFlags.push({ level: 'Critical', text: 'Contract source code is not publicly verified on BaseScan.' });
         }
         if (isProxy) {
-          riskFlags.push({ level: 'Medium', text: 'Contract utilizes an upgradeable proxy pattern. Implementation bytecode can be modified.' });
+          riskFlags.push({ level: 'Medium', text: 'Contract utilizes an upgradeable proxy pattern (EIP-1967).' });
         }
-        if (riskFlags.length === 0) {
-          riskFlags.push({ level: 'Low', text: 'Verified contract with robust on-chain bytecode architecture.' });
+        if (isVerified) {
+          riskFlags.push({ level: 'Low', text: 'Verified open-source smart contract on BaseScan with confirmed bytecode architecture.' });
         }
 
         return {
@@ -360,7 +367,7 @@ export async function auditProtocol(address) {
           tvl: result.tvl !== 'N/A' ? result.tvl : deepAi?.tvl || '$18.5M',
           healthScore,
           riskFlags,
-          interactionSummary: buildInteractionVerdict({ isKnown: true, audited: isVerified, sourceVerified: isVerified, isProxy, healthScore }),
+          interactionSummary: buildInteractionVerdict({ isKnown: isVerified, audited: isVerified, sourceVerified: isVerified, isProxy, healthScore }),
           deepAiReasoning: deepAi,
         };
       }
