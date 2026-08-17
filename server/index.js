@@ -25,6 +25,7 @@ import {
   getDaemonStatus
 } from './sentinelDaemon.js';
 import { generateDeepAiReasoning } from './aiReasoning.js';
+import { auditProtocolOnChain } from './onChainAuditor.js';
 
 const app  = express();
 const PORT = process.env.PORT || 3001;

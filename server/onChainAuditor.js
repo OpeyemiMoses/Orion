@@ -184,8 +184,9 @@ export async function auditProtocolOnChain(address) {
   try {
     const keyParam = BASESCAN_KEY ? `&apikey=${BASESCAN_KEY}` : '';
     const scanUrls = [
-      `https://api.etherscan.io/v2/api?chainid=8453&module=contract&action=getsourcecode&address=${addr}${keyParam}`,
       `https://api.basescan.org/api?module=contract&action=getsourcecode&address=${addr}${keyParam}`,
+      `https://api.etherscan.io/v2/api?chainid=8453&module=contract&action=getsourcecode&address=${addr}${keyParam}`,
+      `https://api.basescan.org/api?module=contract&action=getabi&address=${addr}${keyParam}`,
     ];
 
     for (const scanUrl of scanUrls) {
@@ -193,17 +194,22 @@ export async function auditProtocolOnChain(address) {
         const scanRes = await fetch(scanUrl);
         if (scanRes.ok) {
           const scanData = await scanRes.json();
-          if (scanData.status === '1' && scanData.result?.[0]) {
-            const info = scanData.result[0];
-            if (info.SourceCode && info.SourceCode !== '') {
+          if (scanData.status === '1') {
+            const info = Array.isArray(scanData.result) ? scanData.result[0] : null;
+            if (info && (info.SourceCode || (info.ABI && info.ABI.startsWith('[')))) {
               isVerified = true;
               contractName = onChainName ? (onChainSymbol ? `${onChainName} (${onChainSymbol})` : onChainName) : (info.ContractName || contractName);
-              compiler = info.CompilerVersion;
-              licenseType = info.LicenseType;
+              compiler = info.CompilerVersion || 'Solidity (Verified)';
+              licenseType = info.LicenseType || 'Open-Source';
               if (info.Proxy === '1') {
                 isProxyFromScan = true;
                 implementationFromScan = info.Implementation;
               }
+              break;
+            } else if (typeof scanData.result === 'string' && scanData.result.startsWith('[')) {
+              // Direct getabi response
+              isVerified = true;
+              compiler = compiler || 'Solidity (Verified)';
               break;
             }
           }
