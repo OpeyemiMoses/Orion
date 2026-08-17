@@ -211,7 +211,16 @@ export default function TelegramSentinel({ wallet, openWalletModal }) {
         </div>
 
         <div className="card" style={{ padding: '18px 20px' }}>
-          <div className="stat-label">TELEGRAM BINDING</div>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <div className="stat-label">TELEGRAM BINDING</div>
+            <button
+              onClick={fetchStatus}
+              title="Refresh binding status from server"
+              style={{ background: 'none', border: 'none', color: 'var(--text-dim)', cursor: 'pointer', padding: 2, display: 'flex' }}
+            >
+              <RefreshCw size={12} />
+            </button>
+          </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '6px' }}>
             <span style={{ width: 8, height: 8, borderRadius: '50%', background: isBound ? '#16a34a' : '#eab308', display: 'inline-block' }} />
             <span style={{ fontSize: '16px', fontWeight: 600, color: 'var(--text-main)' }}>
