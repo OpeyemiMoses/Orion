@@ -165,13 +165,16 @@ ${message}
     `.trim();
 
     const keyboard = [
-      [{ text: '🛡️ Open OrionX Dashboard', url: actionUrl || 'http://localhost:5173' }],
+      [{ text: '🛡️ Open OrionX Repository', url: 'https://github.com/OpeyemiMoses/Orion' }],
       [{ text: '📊 Check Position Status', callback_data: 'cmd_status' }],
     ];
 
     await sendTelegramMessage(sub.chatId, alertHtml, keyboard);
   }
 }
+
+// In-memory conversation state session tracker
+const userSessions = {};
 
 // ── Main Menu Keyboard ────────────────────────────────────────────────────────
 function getMainMenuKeyboard() {
@@ -186,7 +189,7 @@ function getMainMenuKeyboard() {
     ],
     [
       { text: '⚙️ Alert Settings', callback_data: 'cmd_settings' },
-      { text: '🌐 Launch OrionX Web', url: 'http://localhost:5173' },
+      { text: '🌐 Open OrionX GitHub', url: 'https://github.com/OpeyemiMoses/Orion' },
     ],
   ];
 }
@@ -208,9 +211,26 @@ export async function handleTelegramUpdate(update) {
     } else if (data === 'cmd_incentives') {
       await handleIncentivesCommand(chatId);
     } else if (data === 'cmd_audit_prompt') {
-      await sendTelegramMessage(chatId, '🔍 <b>Deep AI Protocol Auditor</b>\n\nSend <code>/audit &lt;contract_address&gt;</code> to analyze any Base contract (e.g. Aerodrome, Moonwell, cbETH).');
+      userSessions[chatId] = { awaiting: 'audit_address' };
+      await sendTelegramMessage(
+        chatId,
+        '🔍 <b>Deep AI Protocol Auditor</b>\n\nPlease reply with any Base contract address to audit live (e.g. Aerodrome Router <code>0xcf77a3ba9a5ca399b7c97c74d54e5b1beb874e43</code> or Moonwell <code>0x3154cf16ccdb4c6d922629664174b904d80f2c35</code>).'
+      );
+    } else if (data === 'cmd_bind_prompt') {
+      userSessions[chatId] = { awaiting: 'bind_address' };
+      await sendTelegramMessage(
+        chatId,
+        '🔗 <b>Connect Your Base Wallet</b>\n\nPlease reply with your Base wallet address (e.g. <code>0x1234567890abcdef1234567890abcdef12345678</code>).'
+      );
     } else if (data === 'cmd_settings') {
       await handleSettingsCommand(chatId);
+    } else if (data.startsWith('action_bind_')) {
+      const addr = data.replace('action_bind_', '');
+      bindWalletToChat(chatId, addr);
+      await sendTelegramMessage(chatId, `✅ <b>Wallet Bound:</b> <code>${addr}</code>\n\nAlways-On background sentinel is now active for this address!`, getMainMenuKeyboard());
+    } else if (data.startsWith('action_audit_')) {
+      const addr = data.replace('action_audit_', '');
+      await handleAuditCommand(chatId, addr);
     }
 
     // Acknowledge callback query
@@ -225,8 +245,62 @@ export async function handleTelegramUpdate(update) {
   const text = message.text.trim();
   const username = message.from?.username || message.from?.first_name || '';
 
-  // 1. /start command
+  // 1. Check if user is in an active session (e.g. awaiting an address)
+  const session = userSessions[chatId];
+  if (session && !text.startsWith('/')) {
+    const isAddr = /^0x[a-fA-F0-9]{40}$/.test(text);
+
+    if (session.awaiting === 'bind_address') {
+      if (isAddr) {
+        delete userSessions[chatId];
+        bindWalletToChat(chatId, text, username);
+        const confirmation = `
+<b>✅ Wallet Successfully Bound to OrionX Sentinel!</b>
+
+<b>Bound Address:</b> <code>${text}</code>
+<b>Monitoring Status:</b> 🟢 <b>ALWAYS ON (24/7 Background Sentinel)</b>
+
+You will now receive instant push alerts for liquidations, yields, and incentive rewards.
+        `.trim();
+        await sendTelegramMessage(chatId, confirmation, getMainMenuKeyboard());
+        return;
+      } else {
+        await sendTelegramMessage(chatId, '❌ <b>Invalid Address Format.</b>\n\nPlease reply with a valid 42-character Base wallet address starting with <code>0x</code>.');
+        return;
+      }
+    }
+
+    if (session.awaiting === 'audit_address') {
+      if (isAddr) {
+        delete userSessions[chatId];
+        await handleAuditCommand(chatId, text);
+        return;
+      } else {
+        await sendTelegramMessage(chatId, '❌ <b>Invalid Address Format.</b>\n\nPlease reply with a valid 42-character Base contract address starting with <code>0x</code>.');
+        return;
+      }
+    }
+  }
+
+  // 2. Direct Address Input (User pasted a raw 0x... address)
+  if (/^0x[a-fA-F0-9]{40}$/.test(text)) {
+    const keyboard = [
+      [
+        { text: '🔗 Bind as My Wallet', callback_data: `action_bind_${text}` },
+        { text: '🛡️ Run Deep AI Audit', callback_data: `action_audit_${text}` },
+      ],
+    ];
+    await sendTelegramMessage(
+      chatId,
+      `📍 <b>Detected Base Address:</b> <code>${text}</code>\n\nWhat would you like OrionX to do?`,
+      keyboard
+    );
+    return;
+  }
+
+  // 3. /start command
   if (text.startsWith('/start')) {
+    delete userSessions[chatId];
     const parts = text.split(' ');
     if (parts.length > 1 && parts[1].startsWith('bind_')) {
       const wallet = parts[1].replace('bind_', '');
@@ -253,7 +327,7 @@ You will now receive instant push alerts for:
 
 The autonomous capital co-pilot natively built for Base Mainnet.
 
-${sub ? `<b>Bound Wallet:</b> <code>${sub.walletAddress}</code> (Active 24/7)` : '⚠️ <b>No wallet bound yet.</b> Use <code>/bind 0xYourWalletAddress</code> or click below to link your Base wallet.'}
+${sub ? `<b>Bound Wallet:</b> <code>${sub.walletAddress}</code> (Active 24/7)` : '⚠️ <b>No wallet bound yet.</b> Use <code>/bind</code> or click below to link your Base wallet.'}
 
 <b>Available Commands:</b>
 • <code>/bind &lt;address&gt;</code> — Link your Base wallet
@@ -268,60 +342,90 @@ ${sub ? `<b>Bound Wallet:</b> <code>${sub.walletAddress}</code> (Active 24/7)` :
     return;
   }
 
-  // 2. /bind <wallet>
+  // 4. /bind command
   if (text.startsWith('/bind')) {
     const parts = text.split(' ');
     const wallet = parts[1];
-    if (!wallet || !wallet.startsWith('0x') || wallet.length !== 42) {
+
+    if (!wallet) {
+      // Prompt user for their wallet address
+      userSessions[chatId] = { awaiting: 'bind_address' };
+      await sendTelegramMessage(
+        chatId,
+        '🔗 <b>Connect Your Base Wallet</b>\n\nPlease reply with your Base wallet address (e.g. <code>0x1234567890abcdef1234567890abcdef12345678</code>).'
+      );
+      return;
+    }
+
+    if (!wallet.startsWith('0x') || wallet.length !== 42) {
       await sendTelegramMessage(chatId, '❌ <b>Invalid Wallet Address.</b>\n\nUsage: <code>/bind 0x1234567890abcdef1234567890abcdef12345678</code>');
       return;
     }
 
+    delete userSessions[chatId];
     bindWalletToChat(chatId, wallet, username);
     await sendTelegramMessage(chatId, `✅ <b>Wallet Bound:</b> <code>${wallet}</code>\n\nAlways-On background monitoring is now active!`, getMainMenuKeyboard());
     return;
   }
 
-  // 3. /status or /shield
+  // 5. /audit command
+  if (text.startsWith('/audit')) {
+    const parts = text.split(' ');
+    const targetAddr = parts[1];
+
+    if (!targetAddr) {
+      // Prompt user for contract address
+      userSessions[chatId] = { awaiting: 'audit_address' };
+      await sendTelegramMessage(
+        chatId,
+        '🔍 <b>Deep AI Protocol Auditor</b>\n\nPlease reply with any Base contract address to audit live (e.g. Aerodrome Router <code>0xcf77a3ba9a5ca399b7c97c74d54e5b1beb874e43</code> or Moonwell <code>0x3154cf16ccdb4c6d922629664174b904d80f2c35</code>).'
+      );
+      return;
+    }
+
+    if (!targetAddr.startsWith('0x') || targetAddr.length !== 42) {
+      await sendTelegramMessage(chatId, '❌ <b>Invalid Contract Address.</b>\n\nUsage: <code>/audit 0xContractAddress</code>');
+      return;
+    }
+
+    delete userSessions[chatId];
+    await handleAuditCommand(chatId, targetAddr);
+    return;
+  }
+
+  // 6. /status or /shield
   if (text.startsWith('/status') || text.startsWith('/shield')) {
     await handleStatusCommand(chatId);
     return;
   }
 
-  // 4. /yields
+  // 7. /yields
   if (text.startsWith('/yields')) {
     await handleYieldsCommand(chatId);
     return;
   }
 
-  // 5. /incentives
+  // 8. /incentives
   if (text.startsWith('/incentives')) {
     await handleIncentivesCommand(chatId);
     return;
   }
 
-  // 6. /audit <address> (Deep AI Protocol Reasoning)
-  if (text.startsWith('/audit')) {
-    const parts = text.split(' ');
-    const targetAddr = parts[1] || '0xcf77a3ba9a5ca399b7c97c74d54e5b1beb874e43'; // Default to Aerodrome Router
-    await handleAuditCommand(chatId, targetAddr);
-    return;
-  }
-
-  // 7. /settings
+  // 9. /settings
   if (text.startsWith('/settings')) {
     await handleSettingsCommand(chatId);
     return;
   }
 
-  // 8. /unbind
+  // 10. /unbind
   if (text.startsWith('/unbind')) {
     unbindWallet(chatId);
+    delete userSessions[chatId];
     await sendTelegramMessage(chatId, '🔌 <b>Wallet Unbound.</b> Background notifications disabled for this chat.', getMainMenuKeyboard());
     return;
   }
 
-  // Default response
+  // Default fallback response
   await sendTelegramMessage(chatId, '🤖 <b>OrionX Sentinel Command Menu:</b>', getMainMenuKeyboard());
 }
 
@@ -385,7 +489,7 @@ Moving idle USDC to <b>Aerodrome USDC/ETH</b> yields <b>+10.78% net APY gain</b>
   `.trim();
 
   const keyboard = [
-    [{ text: '🌐 Execute on OrionX Web', url: 'http://localhost:5173' }],
+    [{ text: '🌐 View on OrionX GitHub', url: 'https://github.com/OpeyemiMoses/Orion' }],
     [{ text: '📊 Check Position Health', callback_data: 'cmd_status' }],
   ];
 
@@ -416,7 +520,7 @@ async function handleIncentivesCommand(chatId) {
   `.trim();
 
   const keyboard = [
-    [{ text: '🌐 Complete Missing Steps on Web', url: 'http://localhost:5173' }],
+    [{ text: '🌐 View on OrionX GitHub', url: 'https://github.com/OpeyemiMoses/Orion' }],
   ];
 
   await sendTelegramMessage(chatId, incentivesMsg, keyboard);
@@ -483,7 +587,7 @@ ${ai.whatToWatch.map((w, idx) => `• <b>${idx + 1}.</b> ${w}`).join('\n')}
   `.trim();
 
   const keyboard = [
-    [{ text: '🌐 View Full Audit in OrionX Web', url: 'http://localhost:5173' }],
+    [{ text: '🌐 View on OrionX GitHub', url: 'https://github.com/OpeyemiMoses/Orion' }],
   ];
 
   await sendTelegramMessage(chatId, auditReport, keyboard);
