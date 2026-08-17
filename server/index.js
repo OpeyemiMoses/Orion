@@ -292,9 +292,9 @@ app.get('/api/protocol/:slug', async (req, res) => {
 });
 
 // ── Start Server & Launch Always-On Background Daemon ─────────────────────────
-app.listen(PORT, () => {
+app.listen(PORT, '0.0.0.0', () => {
   console.log(`\n  ======================================================`);
-  console.log(`  OrionX Backend & Always-On Sentinel Running at http://localhost:${PORT}`);
+  console.log(`  OrionX Backend & Always-On Sentinel Running on 0.0.0.0:${PORT}`);
   console.log(`  BaseScan API key: ${BASESCAN_KEY ? '✓ configured' : '✗ not set (rate-limited)'}`);
   console.log(`  Base RPC: ${BASE_RPC}`);
   console.log(`  Telegram Bot: ${process.env.TELEGRAM_BOT_TOKEN ? '✓ Live Token Configured' : 'Local Mock Mode'}`);
