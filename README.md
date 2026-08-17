@@ -36,7 +36,6 @@
 - [Security and Non-Custodial Architecture](#security-and-non-custodial-architecture)
 - [Getting Started](#getting-started)
 - [Environment Configuration](#environment-configuration)
-- [Roadmap](#roadmap)
 - [Contributing](#contributing)
 - [License](#license)
 
@@ -401,20 +400,6 @@ VITE_BASESCAN_API_KEY=YOUR_BASESCAN_KEY
 # Backend Server Port (Optional)
 PORT=3001
 ```
-
----
-
-## Roadmap
-
-- [x] Base Mainnet Multi-Protocol Health Factor Sensing (Moonwell, Compound III, Aave V3, Seamless)
-- [x] Live DeFi Llama Yield Scanner & Gas-Adjusted Rebalancing Engine
-- [x] Autonomous Incentive Criteria Evaluator (Aerodrome, Moonwell, Base Onchain Summer)
-- [x] EIP-6963 Multi-Wallet Provider Isolation
-- [x] Direct On-Chain Execution Pipeline with BaseScan Links
-- [x] On-Scroll Reveal and Smooth Rise-In Animation System
-- [ ] ERC-4337 Session Key Automation for 1-click bounded auto-execution
-- [ ] Cross-chain capital bridging telemetry (Arbitrum, Optimism to Base)
-- [ ] Telegram & Discord real-time liquidation alert bot
 
 ---
 
