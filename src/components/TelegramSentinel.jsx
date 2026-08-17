@@ -6,7 +6,10 @@ const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3001';
 export default function TelegramSentinel({ wallet, openWalletModal }) {
   const [botStatus, setBotStatus] = useState(null);
   const [daemonLogs, setDaemonLogs] = useState([]);
-  const [isBound, setIsBound] = useState(false);
+  const [isBound, setIsBound] = useState(() => {
+    if (!wallet?.address) return false;
+    return localStorage.getItem(`orionx_tg_bound_${wallet.address.toLowerCase()}`) === 'true';
+  });
   const [manualChatId, setManualChatId] = useState('');
   const [loading, setLoading] = useState(false);
   const [testAlertSent, setTestAlertSent] = useState(false);
@@ -36,16 +39,23 @@ export default function TelegramSentinel({ wallet, openWalletModal }) {
     } catch { /* ignore */ }
 
     if (wallet?.address) {
+      const localKey = `orionx_tg_bound_${wallet.address.toLowerCase()}`;
       try {
         const prefRes = await fetch(`${BACKEND_URL}/api/telegram/preferences/${wallet.address}`);
         if (prefRes.ok) {
           const prefData = await prefRes.json();
-          setIsBound(!!prefData.isBound);
+          const bound = !!prefData.isBound;
+          setIsBound(bound);
+          localStorage.setItem(localKey, bound ? 'true' : 'false');
           if (prefData.subscriptions?.[0]?.preferences) {
             setPreferences(prefData.subscriptions[0].preferences);
           }
         }
-      } catch { /* ignore */ }
+      } catch {
+        // Fallback to localStorage if backend is offline or waking up
+        const cachedBound = localStorage.getItem(localKey) === 'true';
+        if (cachedBound) setIsBound(true);
+      }
     }
   }, [wallet?.address]);
 
@@ -73,6 +83,7 @@ export default function TelegramSentinel({ wallet, openWalletModal }) {
       });
       if (res.ok) {
         setIsBound(true);
+        localStorage.setItem(`orionx_tg_bound_${wallet.address.toLowerCase()}`, 'true');
         setManualChatId('');
         fetchStatus();
       }
@@ -124,6 +135,7 @@ export default function TelegramSentinel({ wallet, openWalletModal }) {
   const handleUnbind = async () => {
     if (!wallet?.address) return;
     setLoading(true);
+    const localKey = `orionx_tg_bound_${wallet.address.toLowerCase()}`;
     try {
       const res = await fetch(`${BACKEND_URL}/api/telegram/unbind`, {
         method: 'POST',
@@ -132,10 +144,13 @@ export default function TelegramSentinel({ wallet, openWalletModal }) {
       });
       if (res.ok) {
         setIsBound(false);
+        localStorage.removeItem(localKey);
         fetchStatus();
       }
     } catch (err) {
       console.warn('Unbind failed:', err);
+      setIsBound(false);
+      localStorage.removeItem(localKey);
     } finally {
       setLoading(false);
     }
