@@ -1,10 +1,24 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Send, CheckCircle2, AlertTriangle, ShieldCheck, Zap, Bell, Settings, Radio, ExternalLink, RefreshCw, Cpu, Activity, Lock, Unlink, LogOut } from 'lucide-react';
 
-const DEFAULT_BACKEND = import.meta.env.VITE_BACKEND_URL || (typeof window !== 'undefined' && window.location.hostname !== 'localhost' ? '' : 'http://localhost:3001');
+const LIVE_RAILWAY_URL = 'https://orion-production-3db8.up.railway.app';
+
+function normalizeUrl(url) {
+  if (!url) return '';
+  let clean = url.trim().replace(/\/$/, '');
+  if (clean && !clean.startsWith('http://') && !clean.startsWith('https://')) {
+    clean = `https://${clean}`;
+  }
+  return clean;
+}
+
+const DEFAULT_BACKEND = import.meta.env.VITE_BACKEND_URL || (typeof window !== 'undefined' && window.location.hostname !== 'localhost' ? LIVE_RAILWAY_URL : 'http://localhost:3001');
 
 export default function TelegramSentinel({ wallet, openWalletModal }) {
-  const [customBackend, setCustomBackend] = useState(() => localStorage.getItem('orionx_backend_url') || DEFAULT_BACKEND);
+  const [customBackend, setCustomBackend] = useState(() => {
+    const saved = localStorage.getItem('orionx_backend_url');
+    return saved ? normalizeUrl(saved) : DEFAULT_BACKEND;
+  });
   const [showBackendInput, setShowBackendInput] = useState(false);
   const [backendInputVal, setBackendInputVal] = useState(customBackend);
   const [botStatus, setBotStatus] = useState(null);
@@ -25,7 +39,7 @@ export default function TelegramSentinel({ wallet, openWalletModal }) {
     healthThreshold: 1.5,
   });
 
-  const BACKEND_URL = customBackend || 'http://localhost:3001';
+  const BACKEND_URL = normalizeUrl(customBackend) || LIVE_RAILWAY_URL;
 
   const fetchStatus = useCallback(async () => {
     try {

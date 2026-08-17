@@ -289,7 +289,10 @@ export async function auditProtocol(address) {
 
   // 1. Primary: Query Backend Unified On-Chain Auditor (Exact same engine as Telegram)
   try {
-    const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3001';
+    const LIVE_RAILWAY_URL = 'https://orion-production-3db8.up.railway.app';
+    const BACKEND_URL = (typeof window !== 'undefined' && localStorage.getItem('orionx_backend_url')) ||
+      import.meta.env.VITE_BACKEND_URL ||
+      (typeof window !== 'undefined' && window.location.hostname !== 'localhost' ? LIVE_RAILWAY_URL : 'http://localhost:3001');
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), 6000);
     const apiRes = await fetch(`${BACKEND_URL}/api/ai/audit-full`, {
