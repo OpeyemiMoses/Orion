@@ -12,6 +12,7 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import { generateDeepAiReasoning } from './aiReasoning.js';
 import { auditProtocolOnChain } from './onChainAuditor.js';
+import { getRealWalletPositions } from './onChainPositions.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname  = path.dirname(__filename);
@@ -442,29 +443,54 @@ async function handleStatusCommand(chatId) {
   }
 
   const wallet = sub.walletAddress;
+  await sendTelegramMessage(chatId, `🔍 <i>Reading live on-chain telemetry for <code>${wallet.slice(0, 8)}...${wallet.slice(-6)}</code> from Base RPC...</i>`);
+
+  const pos = await getRealWalletPositions(wallet);
+
+  const hfDisplay = pos.totalDebtUSD > 0
+    ? `${pos.healthFactor.toFixed(2)} (${pos.healthStatus})`
+    : '∞ (No Active Debt — 100% Safe)';
+
+  let marketsHtml = '';
+  if (pos.activePositions.length > 0) {
+    marketsHtml = pos.activePositions.map(p => {
+      const col = `$${p.collateralUSD.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+      const debt = `$${p.debtUSD.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+      return `• <b>${escapeTg(p.protocol)}${p.market ? ` (${escapeTg(p.market)})` : ''}:</b> ${col} Collateral | ${debt} Debt`;
+    }).join('\n');
+  } else {
+    marketsHtml = `• <b>Moonwell:</b> No active debt position
+• <b>Compound III:</b> No active debt position
+• <b>Aave V3:</b> No active debt position
+• <b>Seamless Protocol:</b> No active debt position`;
+  }
+
   const statusMsg = `
-<b>📊 ORIONX SENTINEL — LIVE POSITION REPORT</b>
+<b>📊 ORIONX SENTINEL — LIVE ON-CHAIN POSITION REPORT</b>
 
-<b>Wallet:</b> <code>${wallet.slice(0, 8)}...${wallet.slice(-6)}</code>
+<b>Wallet:</b> <code>${wallet}</code>
 <b>Network:</b> Base Mainnet (Chain ID 8453)
-<b>Sentinel Status:</b> 🟢 ALWAYS ON (Daemon Active)
+<b>Sentinel Status:</b> 🟢 ALWAYS ON (24/7 Daemon Telemetry Active)
 
-<b>🛡️ Aggregate Health Factor:</b> <code>2.48 (SAFE)</code>
-<b>Total Collateral:</b> $18,450.00
-<b>Total Borrowed:</b> $6,210.00
-<b>Liquidation Buffer:</b> +65.2% drawdown tolerance
+<b>Wallet Balances:</b>
+• <b>ETH:</b> ${pos.ethBalance.toFixed(4)} ETH (~$${(pos.ethBalance * 2800).toFixed(2)})
+• <b>USDC:</b> $${pos.usdcBalance.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+
+<b>Lending Positions & Health:</b>
+• <b>Aggregate Health Factor:</b> <code>${hfDisplay}</code>
+• <b>Total Collateral:</b> $${pos.totalCollateralUSD.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+• <b>Total Borrowed:</b> $${pos.totalDebtUSD.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
 
 <b>Active Markets on Base:</b>
-• <b>Moonwell:</b> $12,500 USDC Collateral | $4,100 ETH Debt (HF 2.44)
-• <b>Compound III:</b> $5,950 USDC Collateral | $2,110 WETH Debt (HF 2.58)
-• <b>Aave V3:</b> No active borrow position
+${marketsHtml}
 
-<b>Sentinel Action:</b> 🟢 No protective repay required. Margins are healthy.
+<b>Sentinel Action:</b> ${pos.totalDebtUSD === 0 ? '🟢 No liquidation exposure. Capital is safe.' : pos.healthFactor >= 1.5 ? '🟢 Margins are healthy. No protective repay required.' : '⚠️ Low Health Factor. Protective repay recommended.'}
   `.trim();
 
   const keyboard = [
-    [{ text: '🔄 Refresh Status', callback_data: 'cmd_status' }],
+    [{ text: '🔄 Refresh Live Status', callback_data: 'cmd_status' }],
     [{ text: '🚀 View Yield Opportunities', callback_data: 'cmd_yields' }],
+    [{ text: '🛡️ Open OrionX', url: LIVE_APP_URL }],
   ];
 
   await sendTelegramMessage(chatId, statusMsg, keyboard);

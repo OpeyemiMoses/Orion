@@ -7,6 +7,7 @@
 //   - Automatically pushes instant Telegram alerts to bound users
 
 import { getSubscribers, sendAlertToWallet } from './telegramBot.js';
+import { getRealWalletPositions } from './onChainPositions.js';
 
 let isRunning = false;
 let daemonTimer = null;
@@ -73,19 +74,17 @@ async function executeSentinelCycle() {
 
 async function evaluateWalletRisk(subscriber) {
   const wallet = subscriber.walletAddress;
-  logDaemon(`Scanning collateral health for ${wallet.slice(0, 8)}... on Moonwell / Compound III / Aave V3`);
+  logDaemon(`Scanning collateral health for ${wallet.slice(0, 8)}... on Moonwell / Compound III / Aave V3 / Seamless`);
 
-  // In production / live node context, compute health factor
-  // Mock check demonstrating automated alert thresholding:
-  const seed = parseInt(wallet.slice(2, 6), 16) || 100;
-  const mockHealthFactor = 2.45 - ((seed % 10) * 0.05);
+  // Query real on-chain positions
+  const pos = await getRealWalletPositions(wallet);
 
-  if (mockHealthFactor < (subscriber.preferences?.healthThreshold || 1.50)) {
-    logDaemon(`CRITICAL: Health factor alert triggered for ${wallet.slice(0, 8)} (${mockHealthFactor.toFixed(2)} < 1.50)!`, 'warn');
+  if (pos.totalDebtUSD > 0 && pos.healthFactor < (subscriber.preferences?.healthThreshold || 1.50)) {
+    logDaemon(`CRITICAL: Real health factor alert triggered for ${wallet.slice(0, 8)} (${pos.healthFactor.toFixed(2)} < 1.50)!`, 'warn');
     await sendAlertToWallet(wallet, {
       type: 'liquidation',
       title: 'Liquidation Risk Warning',
-      message: `Your aggregate Health Factor on Base has dropped to <b>${mockHealthFactor.toFixed(2)}</b> (below 1.50 threshold).\n\n<b>Recommended Action:</b> Repay $500 USDC on Moonwell to restore safety buffer to >= 2.0.`,
+      message: `Your aggregate Health Factor on Base has dropped to <b>${pos.healthFactor.toFixed(2)}</b> (below 1.50 threshold).\n\n<b>Total Debt:</b> $${pos.totalDebtUSD.toFixed(2)}\n<b>Total Collateral:</b> $${pos.totalCollateralUSD.toFixed(2)}\n\n<b>Recommended Action:</b> Repay borrow debt to restore safety buffer to >= 2.0.`,
       actionUrl: process.env.ALLOWED_ORIGIN || 'https://orionx-agent.vercel.app',
     });
   }
