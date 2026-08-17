@@ -327,35 +327,76 @@ export async function auditProtocol(address) {
     };
   }
 
-  // 2. BaseScan Source Verification
+  // 2. On-chain name() and symbol() querying
+  let onChainName = '';
+  let onChainSymbol = '';
+  try {
+    const [nameHex, symbolHex] = await Promise.all([
+      rpc('eth_call', [{ to: addr, data: '0x06fdde03' }, 'latest']).catch(() => null),
+      rpc('eth_call', [{ to: addr, data: '0x95d89b41' }, 'latest']).catch(() => null),
+    ]);
+    if (nameHex && nameHex.length >= 66) {
+      // Decode string
+      try {
+        const clean = nameHex.slice(2);
+        if (clean.length >= 128) {
+          const len = parseInt(clean.slice(64, 128), 16);
+          const data = clean.slice(128, 128 + len * 2);
+          const decoded = Buffer.from(data, 'hex').toString('utf8').replace(/\0/g, '').trim();
+          if (decoded) onChainName = decoded;
+        }
+      } catch {}
+    }
+    if (symbolHex && symbolHex.length >= 66) {
+      try {
+        const clean = symbolHex.slice(2);
+        if (clean.length >= 128) {
+          const len = parseInt(clean.slice(64, 128), 16);
+          const data = clean.slice(128, 128 + len * 2);
+          const decoded = Buffer.from(data, 'hex').toString('utf8').replace(/\0/g, '').trim();
+          if (decoded) onChainSymbol = decoded;
+        }
+      } catch {}
+    }
+  } catch {}
+
+  // 3. BaseScan Source Verification (Direct + Backend Proxy Fallback)
   let sourceVerified = known ? true : false;
-  let contractName = known?.name || 'Protocol Contract';
+  let contractName = known?.name || (onChainName ? (onChainSymbol ? `${onChainName} (${onChainSymbol})` : onChainName) : 'Base Protocol Contract');
   let compiler = null;
   let licenseType = null;
 
   try {
-    const controller = new AbortController();
-    const timer = setTimeout(() => controller.abort(), 2500);
     const keyParam = BASESCAN_KEY ? `&apikey=${BASESCAN_KEY}` : '';
-    const url = `${BASESCAN_API}?module=contract&action=getsourcecode&address=${addr}${keyParam}`;
-    const res = await fetch(url, { signal: controller.signal });
-    clearTimeout(timer);
+    const urls = [
+      `${BASESCAN_API}?module=contract&action=getsourcecode&address=${addr}${keyParam}`,
+      `http://localhost:3001/api/basescan/source/${addr}`,
+    ];
 
-    if (res.ok) {
-      const data = await res.json();
-      if (data.status === '1' && data.result?.[0]) {
-        const info = data.result[0];
-        if (info.SourceCode && info.SourceCode !== '') {
-          sourceVerified = true;
-          contractName = info.ContractName || contractName;
-          compiler = info.CompilerVersion;
-          licenseType = info.LicenseType;
+    for (const url of urls) {
+      try {
+        const controller = new AbortController();
+        const timer = setTimeout(() => controller.abort(), 3000);
+        const res = await fetch(url, { signal: controller.signal });
+        clearTimeout(timer);
+        if (res.ok) {
+          const data = await res.json();
+          if (data.status === '1' && data.result?.[0]) {
+            const info = data.result[0];
+            if (info.SourceCode && info.SourceCode !== '') {
+              sourceVerified = true;
+              contractName = info.ContractName || contractName;
+              compiler = info.CompilerVersion;
+              licenseType = info.LicenseType;
+              break;
+            }
+          }
         }
-      }
+      } catch {}
     }
   } catch {}
 
-  // 3. Proxy Detection
+  // 4. Proxy Detection
   let isProxy = false;
   let implementationAddress = null;
   try {
@@ -370,10 +411,11 @@ export async function auditProtocol(address) {
     }
   } catch {}
 
-  // 4. DeFi Llama TVL lookup
+  // 5. DeFi Llama TVL lookup & Pool Discovery
   let tvl = known?.defaultTvl || null;
   let llamaCategory = null;
   const slug = known?.defillamaSlug;
+
   if (slug) {
     try {
       const controller = new AbortController();
@@ -387,6 +429,19 @@ export async function auditProtocol(address) {
           const val = data.chainTvls?.Base?.tvl || data.tvl;
           tvl = val >= 1e9 ? `$${(val / 1e9).toFixed(2)}B` : val >= 1e6 ? `$${(val / 1e6).toFixed(2)}M` : `$${(val / 1e3).toFixed(0)}k`;
           llamaCategory = data.category || null;
+        }
+      }
+    } catch {}
+  }
+
+  if (!tvl) {
+    try {
+      const poolsRes = await fetch('https://yields.llama.fi/pools');
+      if (poolsRes.ok) {
+        const { data } = await poolsRes.json();
+        const match = data.find(p => p.chain === 'Base' && (p.pool?.toLowerCase() === addr || p.tokenAddress?.toLowerCase() === addr));
+        if (match) {
+          tvl = match.tvlUsd >= 1e9 ? `$${(match.tvlUsd / 1e9).toFixed(2)}B` : match.tvlUsd >= 1e6 ? `$${(match.tvlUsd / 1e6).toFixed(2)}M` : `$${(match.tvlUsd / 1e3).toFixed(0)}k`;
         }
       }
     } catch {}

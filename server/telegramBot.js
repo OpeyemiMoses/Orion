@@ -11,6 +11,7 @@ import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { generateDeepAiReasoning } from './aiReasoning.js';
+import { auditProtocolOnChain } from './onChainAuditor.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname  = path.dirname(__filename);
@@ -527,38 +528,44 @@ async function handleIncentivesCommand(chatId) {
 }
 
 async function handleAuditCommand(chatId, contractAddress) {
-  await sendTelegramMessage(chatId, `🧠 <i>Running Deep AI Protocol Reasoning on <code>${contractAddress}</code>...</i>`);
+  await sendTelegramMessage(chatId, `🧠 <i>Querying Base Multi-RPC, BaseScan & DeFi Llama for <code>${contractAddress}</code>...</i>`);
 
-  const mockProtocol = {
-    name: contractAddress.toLowerCase() === '0xcf77a3ba9a5ca399b7c97c74d54e5b1beb874e43' ? 'Aerodrome Router' : 'Custom Base Protocol',
-    address: contractAddress,
-    protocol: 'Base Ecosystem',
-    type: 'AMM / Liquidity Hub',
-    isVerified: true,
-    isProxy: false,
-    adminMsig: true,
-    audited: true,
-    auditFirms: ['OpenZeppelin', 'Spearbit'],
-    tvl: '$180.4M',
-    description: 'Central trading and liquidity marketplace on Base Mainnet.',
-  };
+  try {
+    const result = await auditProtocolOnChain(contractAddress);
 
-  const ai = generateDeepAiReasoning(mockProtocol);
+    if (result.isEOA) {
+      const eoaMsg = `
+<b>⚠️ Personal Wallet Account (EOA)</b>
 
-  const auditReport = `
+<b>Address:</b> <code>${result.address}</code>
+<b>Bytecode Size:</b> 0 bytes
+<b>Status:</b> Non-Contract Account on Base Mainnet
+
+This is an individual user's wallet address, not a decentralized protocol smart contract.
+      `.trim();
+      await sendTelegramMessage(chatId, eoaMsg, getMainMenuKeyboard());
+      return;
+    }
+
+    const ai = result.deepAiReasoning;
+    const nameDisplay = result.symbol ? `${result.name} (${result.symbol})` : result.name;
+
+    const auditReport = `
 <b>🧠 DEEP AI PROTOCOL AUDIT REPORT</b>
-<b>Protocol:</b> ${ai.protocolName}
-<b>Address:</b> <code>${ai.protocolAddress}</code>
+<b>Protocol:</b> <b>${nameDisplay}</b>
+<b>Address:</b> <code>${result.address}</code>
 <b>Safety Score:</b> <b>${ai.score}/100 — Grade ${ai.grade}</b>
 <b>Risk Classification:</b> <b>${ai.riskLevel}</b>
+<b>Verified Bytecode:</b> ${result.isVerified ? `✅ Yes (${result.compiler || 'Solidity'})` : '⚠️ Unverified Source'}
+<b>Proxy Pattern:</b> ${result.isProxy ? `⚡ Upgradeable (Impl: <code>${result.implementationAddress?.slice(0,10)}...</code>)` : '🔒 Immutable Bytecode'}
+<b>Contract Size:</b> ${result.bytecodeSize.toLocaleString()} bytes
 
 ━━━━━━━━━━━━━━━━━━━
 <b>1. Details & Architecture:</b>
 • <b>Type:</b> ${ai.architecture.contractType}
-• <b>Bytecode:</b> ${ai.architecture.verification}
-• <b>Proxy Pattern:</b> ${ai.architecture.proxyPattern}
 • <b>Governance:</b> ${ai.architecture.governanceControl}
 • <b>Timelock:</b> ${ai.architecture.timelockDelay}
+• <b>License:</b> ${result.licenseType || 'Open Source'}
 
 ━━━━━━━━━━━━━━━━━━━
 <b>2. Health & Solvency:</b>
@@ -566,7 +573,7 @@ async function handleAuditCommand(chatId, contractAddress) {
 • <b>Solvency Ratio:</b> ${ai.healthMetrics.solvencyRatio}
 • <b>Bad Debt:</b> ${ai.healthMetrics.badDebtExposure}
 • <b>TVL Trajectory:</b> ${ai.healthMetrics.tvlTrajectory}
-• <b>Liquidity Buffer:</b> ${ai.healthMetrics.liquidityBuffer}
+• <b>Reported TVL:</b> ${result.tvl}
 
 ━━━━━━━━━━━━━━━━━━━
 <b>3. Price & Liquidity Depth:</b>
@@ -582,15 +589,25 @@ async function handleAuditCommand(chatId, contractAddress) {
 • <b>Whale Dispersion:</b> ${ai.marketSentiment.whaleConcentration}
 
 ━━━━━━━━━━━━━━━━━━━
-<b>5. Critical "What to Watch":</b>
+<b>5. Exploit Vector Assessment:</b>
+${ai.exploitVectors.map(v => `• <b>${v.vector}:</b> [${v.risk} Risk] ${v.detail}`).join('\n')}
+
+━━━━━━━━━━━━━━━━━━━
+<b>6. Critical "What to Watch":</b>
 ${ai.whatToWatch.map((w, idx) => `• <b>${idx + 1}.</b> ${w}`).join('\n')}
-  `.trim();
+    `.trim();
 
-  const keyboard = [
-    [{ text: '🌐 View on OrionX GitHub', url: 'https://github.com/OpeyemiMoses/Orion' }],
-  ];
+    const keyboard = [
+      [
+        { text: '🔍 View on BaseScan', url: `https://basescan.org/address/${result.address}` },
+        { text: '🌐 OrionX GitHub', url: 'https://github.com/OpeyemiMoses/Orion' },
+      ],
+    ];
 
-  await sendTelegramMessage(chatId, auditReport, keyboard);
+    await sendTelegramMessage(chatId, auditReport, keyboard);
+  } catch (err) {
+    await sendTelegramMessage(chatId, `❌ <b>Audit Error:</b> ${err.message}`);
+  }
 }
 
 async function handleSettingsCommand(chatId) {
