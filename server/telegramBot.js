@@ -6,6 +6,7 @@
 //   - Deep AI protocol reasoning on any Base contract
 //   - Automatic subscriber persistence in server/data/subscribers.json
 
+import 'dotenv/config';
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
@@ -90,18 +91,26 @@ export function updatePreferences(chatId, newPrefs) {
 }
 
 // ── Telegram Bot API Client ───────────────────────────────────────────────────
-const BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN || '';
-const TELEGRAM_API = BOT_TOKEN ? `https://api.telegram.org/bot${BOT_TOKEN}` : '';
+function getBotToken() {
+  return (process.env.TELEGRAM_BOT_TOKEN || '').trim();
+}
+
+function getApiUrl(method) {
+  const token = getBotToken();
+  return token ? `https://api.telegram.org/bot${token}/${method}` : '';
+}
 
 async function tgRequest(method, body = {}) {
-  if (!BOT_TOKEN) return null;
+  const url = getApiUrl(method);
+  if (!url) return null;
   try {
-    const res = await fetch(`${TELEGRAM_API}/${method}`, {
+    const res = await fetch(url, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(body),
     });
-    return await res.json();
+    const json = await res.json();
+    return json;
   } catch (err) {
     console.warn(`[TelegramBot] API Error (${method}):`, err.message);
     return null;
@@ -109,7 +118,8 @@ async function tgRequest(method, body = {}) {
 }
 
 export async function sendTelegramMessage(chatId, text, inlineKeyboard = null) {
-  if (!BOT_TOKEN) {
+  const token = getBotToken();
+  if (!token) {
     console.log(`[TelegramBot Mock] Would send to ${chatId}:\n${text}`);
     return { ok: true, mock: true };
   }
@@ -125,7 +135,11 @@ export async function sendTelegramMessage(chatId, text, inlineKeyboard = null) {
     payload.reply_markup = { inline_keyboard: inlineKeyboard };
   }
 
-  return await tgRequest('sendMessage', payload);
+  const res = await tgRequest('sendMessage', payload);
+  if (!res?.ok) {
+    console.warn(`[TelegramBot] Send failed to ${chatId}:`, res?.description);
+  }
+  return res;
 }
 
 // ── Alert Dispatcher to Bound Wallet Subscribers ──────────────────────────────
@@ -507,26 +521,36 @@ To change settings, visit the <b>Telegram Sentinel</b> tab in the OrionX web app
 let isPolling = false;
 let lastUpdateId = 0;
 
-export function startTelegramPolling() {
-  if (!BOT_TOKEN) {
+export async function startTelegramPolling() {
+  const token = getBotToken();
+  if (!token) {
     console.log('  [TelegramBot] No TELEGRAM_BOT_TOKEN found in .env — running in local mock mode.');
     return;
   }
 
   if (isPolling) return;
   isPolling = true;
-  console.log('  [TelegramBot] ✓ Telegram Sentinel Bot polling started.');
+
+  // Clear any existing webhook so long polling works reliably
+  try {
+    await tgRequest('deleteWebhook');
+  } catch { /* ignore */ }
+
+  console.log('  [TelegramBot] ✓ Telegram Sentinel Bot polling active for @OrionXSentinelBot.');
 
   const poll = async () => {
     try {
-      const res = await tgRequest('getUpdates', {
-        offset: lastUpdateId + 1,
-        timeout: 25,
-      });
+      const payload = { timeout: 15 };
+      if (lastUpdateId > 0) {
+        payload.offset = lastUpdateId + 1;
+      }
+
+      const res = await tgRequest('getUpdates', payload);
 
       if (res && res.ok && Array.isArray(res.result)) {
         for (const update of res.result) {
           lastUpdateId = update.update_id;
+          console.log(`[TelegramBot Update #${update.update_id}] Received text:`, update.message?.text || update.callback_query?.data || '(event)');
           await handleTelegramUpdate(update);
         }
       }
@@ -535,7 +559,7 @@ export function startTelegramPolling() {
     }
 
     if (isPolling) {
-      setTimeout(poll, 1000);
+      setTimeout(poll, 800);
     }
   };
 
