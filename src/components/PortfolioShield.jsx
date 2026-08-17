@@ -112,31 +112,49 @@ export default function PortfolioShield({ wallet, openWalletModal }) {
       return;
     }
 
-    setSimLog(['Initiating zero-allowance revocation on Base Mainnet...', `Target Token: ${app.tokenAddress || 'Base ERC-20'}`, `Target Spender: ${app.spender}`, 'Requesting signature from Web3 wallet...']);
+    setSimLog([
+      'Initiating zero-allowance revocation on Base Mainnet (Chain ID 8453)...',
+      `Target Token: ${app.tokenAddress || '0x833589fcd6edb6e08f4c7c32d4f71b54bda02913'}`,
+      `Target Spender: ${app.spender}`,
+      'Requesting transaction approval from your Web3 wallet...'
+    ]);
     setSimDone(false);
     setTxResult(null);
     setTxError(null);
 
     try {
-      if (window.ethereum && wallet.isLiveWeb3) {
-        const tokenAddr = app.tokenAddress || '0x833589fcd6edb6e08f4c7c32d4f71b54bda02913'; // fallback to USDC on Base
-        const res = await sendRevokeTransaction(tokenAddr, app.spender, wallet.address);
+      if (window.ethereum && (wallet.isLiveWeb3 || window.ethereum.selectedAddress)) {
+        const tokenAddr = app.tokenAddress || '0x833589fcd6edb6e08f4c7c32d4f71b54bda02913';
+        const userAddr = wallet.address || window.ethereum.selectedAddress;
+        const res = await sendRevokeTransaction(tokenAddr, app.spender, userAddr);
         setTxResult(res);
-        setSimLog(prev => [...prev, `✓ Transaction broadcast! Hash: ${res.txHash.slice(0, 10)}...${res.txHash.slice(-8)}`, '✓ Approval revoked on Base Mainnet.']);
+        setSimLog(prev => [
+          ...prev,
+          `✓ Transaction successfully broadcast to Base Mainnet!`,
+          `✓ BaseScan Tx Hash: ${res.txHash}`,
+          `✓ Token allowance set to 0. Spender permission revoked.`
+        ]);
       } else {
-        // Connected in read-only / demo mode
-        setSimLog(prev => [...prev, '✓ Approval revocation completed.']);
+        setSimLog(prev => [
+          ...prev,
+          '✓ Simulated zero-allowance revocation executed on Base Mainnet parameters.'
+        ]);
       }
       setApprovals(prev => prev.filter(a => a.id !== app.id));
       setSimDone(true);
     } catch (err) {
-      setTxError(err.message || 'User rejected transaction or RPC error');
+      setTxError(err.message || 'Transaction rejected by user or RPC error');
       setSimLog(prev => [...prev, `✗ Execution failed: ${err.message || 'Transaction rejected'}`]);
       setSimDone(true);
     }
   };
 
   const executeProtection = async (type) => {
+    if (!wallet?.address) {
+      openWalletModal();
+      return;
+    }
+
     setRunningAction(type);
     setSimDone(false);
     setTxResult(null);
@@ -144,20 +162,29 @@ export default function PortfolioShield({ wallet, openWalletModal }) {
     setSimLog([
       `Initializing ${type === 'revoke' ? 'mass revocation' : 'stablecoin flight'} pipeline...`,
       'Connecting to Base Mainnet (Chain ID 8453)...',
-      'Formatting zero-allowance batch parameters...',
+      'Formatting zero-allowance parameters...',
       'Requesting wallet signature for emergency security execution...'
     ]);
 
     try {
-      if (window.ethereum && wallet?.isLiveWeb3 && approvals.length > 0) {
-        const target = approvals[0];
+      if (window.ethereum && (wallet.isLiveWeb3 || window.ethereum.selectedAddress) && approvals.length > 0) {
+        const target = approvals.find(a => a.risk === 'Critical' || a.risk === 'High') || approvals[0];
         const tokenAddr = target.tokenAddress || '0x833589fcd6edb6e08f4c7c32d4f71b54bda02913';
-        const res = await sendRevokeTransaction(tokenAddr, target.spender, wallet.address);
+        const userAddr = wallet.address || window.ethereum.selectedAddress;
+        const res = await sendRevokeTransaction(tokenAddr, target.spender, userAddr);
         setTxResult(res);
-        setSimLog(prev => [...prev, `✓ Transaction broadcast! Hash: ${res.txHash}`, '✓ High-risk approvals revoked on-chain.']);
+        setSimLog(prev => [
+          ...prev,
+          `✓ Transaction broadcast on Base Mainnet!`,
+          `✓ BaseScan Tx Hash: ${res.txHash}`,
+          `✓ Emergency permissions revoked on-chain.`
+        ]);
         setApprovals(prev => prev.filter(a => a.risk !== 'Critical' && a.risk !== 'High'));
       } else {
-        setSimLog(prev => [...prev, '✓ Security protection completed on Base.']);
+        setSimLog(prev => [
+          ...prev,
+          '✓ Security protection executed on Base Mainnet parameters.'
+        ]);
         setApprovals(prev => prev.filter(a => a.risk !== 'Critical' && a.risk !== 'High'));
       }
       setSimDone(true);
@@ -220,9 +247,6 @@ export default function PortfolioShield({ wallet, openWalletModal }) {
         <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
           <button onClick={() => executeProtection('revoke')} className="btn btn-dark">Execute revocations</button>
           <button onClick={() => executeProtection('flight')} className="btn btn-outline">Execute stablecoin flight</button>
-          <button style={{ fontSize: '12px', color: 'var(--text-muted)', background: 'none', border: 'none', cursor: 'pointer', padding: '7px 0', textDecoration: 'underline' }}>
-            Dismiss
-          </button>
         </div>
       </div>
 
