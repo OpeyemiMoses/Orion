@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import {
   Search, ExternalLink, AlertTriangle, CheckCircle2, Loader,
-  ShieldAlert, Database, Code2, Globe, GitBranch, AtSign, ArrowLeft
+  ShieldAlert, Database, Code2, Globe, GitBranch, AtSign, ArrowLeft,
+  Cpu, HeartPulse, LineChart, TrendingUp, AlertOctagon, Eye, ShieldCheck
 } from 'lucide-react';
 import { auditProtocol, KNOWN_BASE_PROTOCOLS } from '../services/protocolAudit';
 
@@ -312,6 +313,137 @@ export default function ProtocolAuditor() {
           {r.riskFlags.length === 0 && (
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '12px 16px', background: 'var(--badge-settled)', borderRadius: '8px', marginBottom: '24px', fontSize: '13px', color: 'var(--badge-settled-text)' }}>
               <CheckCircle2 size={16} /> No risk flags detected. This protocol passes all automated checks.
+            </div>
+          )}
+
+          {/* ── Deep AI Reasoning Intelligence Report ─────────── */}
+          {r.deepAiReasoning && (
+            <div style={{ marginBottom: '28px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '14px' }}>
+                <Cpu size={18} style={{ color: 'var(--accent-blue)' }} />
+                <h3 style={{ fontSize: '16px', fontWeight: 600, margin: 0 }}>Deep AI Protocol Reasoning & Intelligence</h3>
+                <span className="badge-settled" style={{ fontSize: '10px', marginLeft: 'auto' }}>
+                  SYNTHESIZED LIVE
+                </span>
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '16px', marginBottom: '16px' }}>
+                {/* 1. Details & Architecture */}
+                <div className="card" style={{ padding: '20px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px' }}>
+                    <ShieldCheck size={16} style={{ color: 'var(--text-dim)' }} />
+                    <span style={{ fontSize: '12px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.07em', color: 'var(--text-dim)' }}>
+                      1. Details & Architecture
+                    </span>
+                  </div>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', fontSize: '12px' }}>
+                    <div><b>Contract Type:</b> <span style={{ color: 'var(--text-muted)' }}>{r.deepAiReasoning.architecture.contractType}</span></div>
+                    <div><b>Bytecode:</b> <span style={{ color: 'var(--text-muted)' }}>{r.deepAiReasoning.architecture.verification}</span></div>
+                    <div><b>Proxy Pattern:</b> <span style={{ color: 'var(--text-muted)' }}>{r.deepAiReasoning.architecture.proxyPattern}</span></div>
+                    <div><b>Governance:</b> <span style={{ color: 'var(--text-muted)' }}>{r.deepAiReasoning.architecture.governanceControl}</span></div>
+                    <div><b>Timelock:</b> <span style={{ color: 'var(--text-muted)' }}>{r.deepAiReasoning.architecture.timelockDelay}</span></div>
+                  </div>
+                </div>
+
+                {/* 2. Health & Solvency */}
+                <div className="card" style={{ padding: '20px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px' }}>
+                    <HeartPulse size={16} style={{ color: '#16a34a' }} />
+                    <span style={{ fontSize: '12px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.07em', color: 'var(--text-dim)' }}>
+                      2. Health & Solvency
+                    </span>
+                  </div>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', fontSize: '12px' }}>
+                    <div><b>Status:</b> <span style={{ color: 'var(--text-muted)' }}>{r.deepAiReasoning.healthMetrics.status}</span></div>
+                    <div><b>Solvency Ratio:</b> <span style={{ color: 'var(--text-muted)' }}>{r.deepAiReasoning.healthMetrics.solvencyRatio}</span></div>
+                    <div><b>Bad Debt:</b> <span style={{ color: 'var(--text-muted)' }}>{r.deepAiReasoning.healthMetrics.badDebtExposure}</span></div>
+                    <div><b>Utilization:</b> <span style={{ color: 'var(--text-muted)' }}>{r.deepAiReasoning.healthMetrics.utilizationRate}</span></div>
+                    <div><b>TVL Trajectory:</b> <span style={{ color: '#16a34a' }}>{r.deepAiReasoning.healthMetrics.tvlTrajectory}</span></div>
+                  </div>
+                </div>
+
+                {/* 3. Price & Liquidity Depth */}
+                <div className="card" style={{ padding: '20px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px' }}>
+                    <LineChart size={16} style={{ color: 'var(--accent-blue)' }} />
+                    <span style={{ fontSize: '12px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.07em', color: 'var(--text-dim)' }}>
+                      3. Price & Liquidity Depth
+                    </span>
+                  </div>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', fontSize: '12px' }}>
+                    <div><b>Price Stability:</b> <span style={{ color: 'var(--text-muted)' }}>{r.deepAiReasoning.priceLiquidity.priceStability}</span></div>
+                    <div><b>DEX Depth:</b> <span style={{ color: 'var(--text-muted)' }}>{r.deepAiReasoning.priceLiquidity.dexDepth}</span></div>
+                    <div><b>Slippage Model:</b> <span style={{ color: 'var(--text-muted)' }}>{r.deepAiReasoning.priceLiquidity.slippageModel}</span></div>
+                    <div><b>Oracle Feeds:</b> <span style={{ color: 'var(--text-muted)' }}>{r.deepAiReasoning.priceLiquidity.oracleSource}</span></div>
+                  </div>
+                </div>
+
+                {/* 4. Market Sentiment & Velocity */}
+                <div className="card" style={{ padding: '20px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px' }}>
+                    <TrendingUp size={16} style={{ color: '#8b5cf6' }} />
+                    <span style={{ fontSize: '12px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.07em', color: 'var(--text-dim)' }}>
+                      4. Market Sentiment & Velocity
+                    </span>
+                  </div>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', fontSize: '12px' }}>
+                    <div><b>Sentiment:</b> <span style={{ color: 'var(--text-muted)' }}>{r.deepAiReasoning.marketSentiment.sentimentScore}</span></div>
+                    <div><b>Volume/TVL Velocity:</b> <span style={{ color: 'var(--text-muted)' }}>{r.deepAiReasoning.marketSentiment.volumeToTvlRatio}</span></div>
+                    <div><b>Ecosystem Role:</b> <span style={{ color: 'var(--text-muted)' }}>{r.deepAiReasoning.marketSentiment.ecosystemAdoption}</span></div>
+                    <div><b>Whale Dispersion:</b> <span style={{ color: 'var(--text-muted)' }}>{r.deepAiReasoning.marketSentiment.whaleConcentration}</span></div>
+                  </div>
+                </div>
+              </div>
+
+              {/* 5. Exploit Vectors & 6. What to Watch Grid */}
+              <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) minmax(0, 1fr)', gap: '16px' }}>
+                {/* 5. Exploit Vector Assessment */}
+                <div className="card" style={{ padding: '20px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px' }}>
+                    <AlertOctagon size={16} style={{ color: '#d97706' }} />
+                    <span style={{ fontSize: '12px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.07em', color: 'var(--text-dim)' }}>
+                      5. Exploit Vector Assessment
+                    </span>
+                  </div>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                    {r.deepAiReasoning.exploitVectors.map((v, idx) => (
+                      <div key={idx} style={{ background: 'var(--bg)', padding: '10px 12px', borderRadius: '6px', border: '1px solid var(--border)' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '3px' }}>
+                          <span style={{ fontSize: '12px', fontWeight: 600, color: 'var(--text-main)' }}>{v.vector}</span>
+                          <span className={`badge ${v.risk === 'Low' ? 'badge-settled' : 'badge-warn'}`} style={{ fontSize: '10px' }}>
+                            {v.risk} Risk
+                          </span>
+                        </div>
+                        <div style={{ fontSize: '11px', color: 'var(--text-muted)', lineHeight: 1.4 }}>
+                          {v.detail}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* 6. Critical "What to Watch" */}
+                <div className="card" style={{ padding: '20px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px' }}>
+                    <Eye size={16} style={{ color: 'var(--accent-blue)' }} />
+                    <span style={{ fontSize: '12px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.07em', color: 'var(--text-dim)' }}>
+                      6. Critical "What to Watch"
+                    </span>
+                  </div>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                    {r.deepAiReasoning.whatToWatch.map((item, idx) => (
+                      <div key={idx} style={{ display: 'flex', gap: '10px', background: 'var(--bg)', padding: '10px 12px', borderRadius: '6px', border: '1px solid var(--border)' }}>
+                        <span style={{ fontSize: '11px', fontWeight: 700, color: 'var(--accent-blue)', flexShrink: 0 }}>
+                          #{idx + 1}
+                        </span>
+                        <span style={{ fontSize: '11px', color: 'var(--text-muted)', lineHeight: 1.45 }}>
+                          {item}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
             </div>
           )}
 

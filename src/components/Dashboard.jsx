@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
-import { Shield, ShieldAlert, TrendingUp, Gift, ScanSearch, Settings as SettingsIcon, ArrowLeft } from 'lucide-react';
+import { Shield, ShieldAlert, TrendingUp, Gift, ScanSearch, Send, Settings as SettingsIcon, ArrowLeft } from 'lucide-react';
 import PortfolioShield  from './PortfolioShield';
 import LiquidationShield from './LiquidationShield';
 import YieldOptimizer   from './YieldOptimizer';
 import IncentiveTracker from './IncentiveTracker';
 import ProtocolAuditor  from './ProtocolAuditor';
+import TelegramSentinel from './TelegramSentinel';
 import Settings         from './Settings';
 
 const NAV = [
@@ -13,6 +14,7 @@ const NAV = [
   { id: 'yield',       label: 'Yield Optimizer',     icon: TrendingUp,   group: 'agent' },
   { id: 'incentive',   label: 'Incentive Tracker',   icon: Gift,         group: 'agent' },
   { id: 'protocol',    label: 'Protocol Auditor',    icon: ScanSearch,   group: 'tools' },
+  { id: 'telegram',    label: 'Telegram Sentinel',   icon: Send,         group: 'tools' },
 ];
 
 export default function Dashboard({ wallet, openWalletModal, setCurrentView }) {
@@ -92,6 +94,7 @@ export default function Dashboard({ wallet, openWalletModal, setCurrentView }) {
           {tab === 'yield'       && <YieldOptimizer    wallet={wallet} openWalletModal={openWalletModal} />}
           {tab === 'incentive'   && <IncentiveTracker  wallet={wallet} openWalletModal={openWalletModal} />}
           {tab === 'protocol'    && <ProtocolAuditor />}
+          {tab === 'telegram'    && <TelegramSentinel  wallet={wallet} openWalletModal={openWalletModal} />}
           {tab === 'settings'    && <Settings />}
         </div>
       </main>

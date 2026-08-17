@@ -161,9 +161,30 @@ OrionX is built on a resilient, high-throughput Web3 telemetry infrastructure de
 * **Active Campaigns:** Aerodrome Season 3 LP Rewards, Base Onchain Summer II, Moonwell WELL Mining, Extra Finance Points.
 * **Action Formulation:** Formats the exact, lowest-gas interaction required to satisfy missing qualification tiers.
 
-### 4. Protocol Security Auditor
+### 4. Protocol Security Auditor with Deep AI Reasoning
 * **1-Click Smart Contract Vetting:** Audits any Base address before funds are deposited.
-* **Security Checks:** BaseScan verified source code, EIP-1967 upgradeable proxy detection, independent security audit firms (OpenZeppelin, Trail of Bits, Spearbit, Halborn), and DeFi Llama TVL.
+* **Deep AI Multi-Dimensional Reasoning:**
+  1. **Details & Architecture:** Bytecode verification, EIP-1967 proxy classification, admin timelock analysis, multisig signer thresholds.
+  2. **Health & Solvency Telemetry:** Collateral health, bad debt exposure, pool utilization rates, and TVL trajectory.
+  3. **Price & Liquidity Depth:** Token price stability, DEX pool depth on Aerodrome/Uniswap, slippage stress modeling, and decentralized oracle feeds.
+  4. **Market Sentiment & Velocity:** 24h/7d volume-to-TVL velocity, developer updates, and whale concentration dispersion.
+  5. **Exploit Vector Risk Breakdown:** Concrete analysis across oracle manipulation, admin key takeover, reentrancy, and liquidation cascades.
+  6. **Critical "What to Watch":** Actionable on-chain triggers (e.g. pending timelock queues, whale borrow spikes, oracle divergence).
+
+### 5. Always-On Telegram Sentinel (24/7 Daemon)
+* **Always-On Background Monitoring:** Continuous 60-second telemetry daemon running in the Node.js backend monitoring bound Base wallets even when the web dashboard is closed.
+* **Automated Telegram Push Alerts:**
+  * **Liquidation Warning:** Instant alert when aggregate Health Factor drops below 1.50 with 1-click repay instructions.
+  * **Yield Reallocation Opportunity:** Dispatches alert when a new Base pool offers $>3\%$ net gain over current allocation after gas & slippage.
+  * **Incentive Gap Notification:** Alerts when missing 1 micro-action to qualify for active Base reward campaigns.
+  * **Contract Security Risk:** Instant alert if an approved protocol undergoes emergency proxy upgrade or owner changes.
+* **Full Interactive Telegram Bot:**
+  * `/start` / `/bind <0xAddress>` — Pair Telegram chat to a Base wallet address.
+  * `/status` or `/shield` — Live aggregate Health Factor, collateral, and debt across Moonwell/Compound/Aave.
+  * `/yields` — Top Base pool yields with net-gain calculations.
+  * `/incentives` — On-chain reward qualification status and missing steps.
+  * `/audit <address>` — Run Deep AI protocol reasoning on any Base contract directly in Telegram.
+  * `/settings` — Configure alert thresholds.
 
 ---
 
