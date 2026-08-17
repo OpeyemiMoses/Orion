@@ -197,14 +197,14 @@ export default function LandingPage({ onLaunchApp, openWalletModal }) {
             <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '12px' }}>
               <ScanSearch size={16} style={{ color: 'var(--text-dim)' }} />
               <p style={{ fontSize: '11px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.1em', color: 'var(--text-dim)' }}>
-                Protocol Auditor
+                Protocol & Token Auditor
               </p>
             </div>
             <h2 style={{ fontFamily: 'var(--font-display)', fontSize: 'clamp(1.4rem, 2.2vw, 1.85rem)', fontWeight: 400, letterSpacing: '-0.01em', marginBottom: '10px' }}>
-              Audit any Base protocol before you interact.
+              Audit any Base protocol or token before you interact.
             </h2>
             <p style={{ fontSize: '14px', color: 'var(--text-muted)', lineHeight: 1.65, maxWidth: '520px' }}>
-              Paste any protocol contract address to inspect verification status, independent audits, total liquidity (TVL), governance architecture, and clear risk flags.
+              Paste any Base smart contract or token address to inspect verification status, tokenomics, liquidity (TVL), governance architecture, and clear risk flags.
             </p>
           </div>
           <button onClick={onLaunchApp} className="btn btn-outline" style={{ whiteSpace: 'nowrap' }}>
@@ -225,11 +225,11 @@ export default function LandingPage({ onLaunchApp, openWalletModal }) {
           <button onClick={onLaunchApp} className="btn btn-dark">Launch app</button>
         </div>
         <div className="scroll-reveal scroll-delay-2">
-          <h3 style={{ fontFamily: 'var(--font-display)', fontSize: '1.2rem', fontWeight: 400, marginBottom: '8px' }}>Audit a protocol</h3>
+          <h3 style={{ fontFamily: 'var(--font-display)', fontSize: '1.2rem', fontWeight: 400, marginBottom: '8px' }}>Audit a protocol or token</h3>
           <p style={{ fontSize: '13px', color: 'var(--text-muted)', lineHeight: 1.6, marginBottom: '16px' }}>
             Paste any Base contract address to get a full risk assessment before you approve, deposit, or interact.
           </p>
-          <button onClick={onLaunchApp} className="btn btn-outline">Protocol auditor</button>
+          <button onClick={onLaunchApp} className="btn btn-outline">Protocol & token auditor</button>
         </div>
         <div className="scroll-reveal scroll-delay-3">
           <h3 style={{ fontFamily: 'var(--font-display)', fontSize: '1.2rem', fontWeight: 400, marginBottom: '8px' }}>Built for Base</h3>

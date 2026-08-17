@@ -13,7 +13,7 @@ const NAV = [
   { id: 'liquidation', label: 'Liquidation Shield',  icon: ShieldAlert,  group: 'agent' },
   { id: 'yield',       label: 'Yield Optimizer',     icon: TrendingUp,   group: 'agent' },
   { id: 'incentive',   label: 'Incentive Tracker',   icon: Gift,         group: 'agent' },
-  { id: 'protocol',    label: 'Protocol Auditor',    icon: ScanSearch,   group: 'tools' },
+  { id: 'protocol',    label: 'Protocol & Token Auditor', icon: ScanSearch,   group: 'tools' },
   { id: 'telegram',    label: 'Telegram Sentinel',   icon: Send,         group: 'tools' },
 ];
 

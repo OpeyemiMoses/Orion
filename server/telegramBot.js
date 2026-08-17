@@ -189,11 +189,11 @@ function getMainMenuKeyboard() {
     ],
     [
       { text: '🎁 Active Incentives', callback_data: 'cmd_incentives' },
-      { text: '🛡️ Audit Protocol', callback_data: 'cmd_audit_prompt' },
+      { text: '🛡️ Protocol & Token Auditor', callback_data: 'cmd_audit_prompt' },
     ],
     [
       { text: '⚙️ Alert Settings', callback_data: 'cmd_settings' },
-      { text: '🛡️ Open OrionX', url: LIVE_APP_URL },
+      { text: '🔗 Bind Base Wallet', callback_data: 'cmd_bind_prompt' },
     ],
   ];
 }
@@ -218,7 +218,7 @@ export async function handleTelegramUpdate(update) {
       userSessions[chatId] = { awaiting: 'audit_address' };
       await sendTelegramMessage(
         chatId,
-        '🔍 <b>Deep AI Protocol Auditor</b>\n\nPlease reply with any Base contract address to audit live (e.g. Aerodrome Router <code>0xcf77a3ba9a5ca399b7c97c74d54e5b1beb874e43</code> or Moonwell <code>0x3154cf16ccdb4c6d922629664174b904d80f2c35</code>).'
+        '🔍 <b>Protocol & Token Auditor (Base Mainnet)</b>\n\nPlease reply with any Base smart contract or token address to audit live (e.g. USDC <code>0x833589fcd6edb6e08f4c7c32d4f71b54bda02913</code>, AERO <code>0x940181a94a35a4569e4529a3cdfb74e38fd98631</code>, or Aerodrome Router <code>0xcf77a3ba9a5ca399b7c97c74d54e5b1beb874e43</code>).'
       );
     } else if (data === 'cmd_bind_prompt') {
       userSessions[chatId] = { awaiting: 'bind_address' };
@@ -382,7 +382,7 @@ ${sub ? `<b>Bound Wallet:</b> <code>${sub.walletAddress}</code> (Active 24/7)` :
       userSessions[chatId] = { awaiting: 'audit_address' };
       await sendTelegramMessage(
         chatId,
-        '🔍 <b>Deep AI Protocol Auditor</b>\n\nPlease reply with any Base contract address to audit live (e.g. Aerodrome Router <code>0xcf77a3ba9a5ca399b7c97c74d54e5b1beb874e43</code> or Moonwell <code>0x3154cf16ccdb4c6d922629664174b904d80f2c35</code>).'
+        '🔍 <b>Protocol & Token Auditor (Base Mainnet)</b>\n\nPlease reply with any Base smart contract or token address to audit live (e.g. USDC <code>0x833589fcd6edb6e08f4c7c32d4f71b54bda02913</code>, AERO <code>0x940181a94a35a4569e4529a3cdfb74e38fd98631</code>, or Aerodrome Router <code>0xcf77a3ba9a5ca399b7c97c74d54e5b1beb874e43</code>).'
       );
       return;
     }
@@ -583,13 +583,13 @@ async function handleAuditCommand(chatId, contractAddress) {
 
     if (result.isEOA) {
       const eoaMsg = `
-<b>⚠️ Personal Wallet Account (EOA)</b>
+⚠️ <b>Not a Base Contract / Unrecognized Address</b>
 
 <b>Address:</b> <code>${result.address}</code>
+<b>Network:</b> Base Mainnet (Chain ID 8453)
 <b>Bytecode Size:</b> 0 bytes
-<b>Status:</b> Non-Contract Account on Base Mainnet
 
-This is an individual user's wallet address, not a decentralized protocol smart contract.
+<i>This address has no deployed smart contract or token bytecode found on Base Mainnet. OrionX only audits protocols and tokens natively deployed on Base.</i>
       `.trim();
       await sendTelegramMessage(chatId, eoaMsg, getMainMenuKeyboard());
       return;
@@ -599,8 +599,8 @@ This is an individual user's wallet address, not a decentralized protocol smart 
     const nameDisplay = result.symbol ? `${result.name} (${result.symbol})` : result.name;
 
     const auditReport = `
-<b>🧠 DEEP AI PROTOCOL AUDIT REPORT</b>
-<b>Protocol:</b> <b>${escapeTg(nameDisplay)}</b>
+<b>🧠 DEEP AI PROTOCOL & TOKEN AUDIT REPORT</b>
+<b>Target:</b> <b>${escapeTg(nameDisplay)}</b>
 <b>Address:</b> <code>${result.address}</code>
 <b>Safety Score:</b> <b>${ai.score}/100 — Grade ${escapeTg(ai.grade)}</b>
 <b>Risk Classification:</b> <b>${escapeTg(ai.riskLevel)}</b>

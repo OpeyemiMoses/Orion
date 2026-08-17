@@ -118,9 +118,9 @@ export default function ProtocolAuditor() {
     <div>
       {/* ── Page header ─────────────────────────────────────── */}
       <div style={{ marginBottom: '28px' }}>
-        <h1 className="page-title">Protocol Auditor</h1>
+        <h1 className="page-title">Protocol & Token Auditor</h1>
         <p className="page-subtitle">
-          Paste any Base ecosystem contract address. OrionX reads multi-endpoint Base RPCs, BaseScan, and DeFi Llama.
+          Paste any Base ecosystem smart contract or token address. OrionX reads multi-endpoint Base RPCs, BaseScan, and DeFi Llama.
         </p>
       </div>
 
@@ -133,12 +133,12 @@ export default function ProtocolAuditor() {
             type="text"
             value={inputAddr}
             onChange={e => setInputAddr(e.target.value)}
-            placeholder="0x… Base contract address"
+            placeholder="0x… Base protocol or token contract address"
             style={{ paddingLeft: '32px', fontFamily: 'var(--font-mono)', fontSize: '13px' }}
           />
         </div>
         <button type="submit" className="btn btn-dark" disabled={loading} style={{ whiteSpace: 'nowrap' }}>
-          {loading ? <><Loader size={13} className="spin" /> Auditing…</> : 'Audit protocol'}
+          {loading ? <><Loader size={13} className="spin" /> Auditing…</> : 'Audit contract'}
         </button>
       </form>
 
@@ -201,23 +201,26 @@ export default function ProtocolAuditor() {
         </div>
       )}
 
-      {/* ── Standard wallet result ───────────────────────────── */}
+      {/* ── Standard wallet / Not a Base contract result ─────── */}
       {r?.isEOA && (
-        <div style={{ maxWidth: '560px' }}>
+        <div style={{ maxWidth: '580px' }}>
           <button
             onClick={() => { setResult(null); setInputAddr(''); }}
             className="btn btn-outline"
             style={{ marginBottom: '16px', gap: '6px', fontSize: '12px' }}
           >
-            <ArrowLeft size={13} /> Back to featured protocols
+            <ArrowLeft size={13} /> Back to featured protocols & tokens
           </button>
-          <div className="card" style={{ padding: '24px' }}>
-            <div style={{ fontWeight: 600, marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <AlertTriangle size={16} style={{ color: 'var(--accent-red)' }} /> Personal Wallet Address
+          <div className="card" style={{ padding: '24px', border: '1px solid rgba(220, 38, 38, 0.25)', background: 'rgba(220, 38, 38, 0.02)' }}>
+            <div style={{ fontWeight: 600, marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--accent-red)' }}>
+              <AlertTriangle size={17} /> Not a Base Contract / Personal Wallet
             </div>
-            <p style={{ fontSize: '13px', color: 'var(--text-muted)' }}>
-              <span className="addr">{r.address}</span> is a personal wallet account, not a protocol smart contract on Base.
+            <p style={{ fontSize: '13px', color: 'var(--text-muted)', lineHeight: 1.6, marginBottom: '12px' }}>
+              <span className="addr" style={{ color: 'var(--text-main)', fontWeight: 600 }}>{r.address}</span> has no deployed contract bytecode or token interfaces found on <b>Base Mainnet (Chain ID 8453)</b>.
             </p>
+            <div style={{ fontSize: '12px', color: 'var(--text-dim)', background: 'var(--bg)', padding: '10px 12px', borderRadius: '6px', border: '1px solid var(--border)' }}>
+              ⚠️ OrionX only audits smart contracts and tokens natively deployed on Base Mainnet.
+            </div>
           </div>
         </div>
       )}
