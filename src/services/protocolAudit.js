@@ -371,135 +371,132 @@ export async function auditProtocol(address) {
 
   const known = KNOWN_BASE_PROTOCOLS[addr] || null;
 
-  // 1. Fetch Bytecode
+  // Browser-safe hex to utf8 string decoder
+  function hexToUtf8(hex) {
+    if (!hex) return '';
+    let str = '';
+    for (let i = 0; i < hex.length; i += 2) {
+      const code = parseInt(hex.substr(i, 2), 16);
+      if (code === 0) continue;
+      if (code >= 32 && code <= 126) {
+        str += String.fromCharCode(code);
+      }
+    }
+    return str.trim();
+  }
+
+  function decodeAbiString(hex) {
+    if (!hex || hex === '0x') return '';
+    const clean = hex.startsWith('0x') ? hex.slice(2) : hex;
+    if (clean.length < 64) return '';
+
+    try {
+      if (clean.length >= 128) {
+        const offset = parseInt(clean.slice(0, 64), 16);
+        if (offset === 32) {
+          const length = parseInt(clean.slice(64, 128), 16);
+          const dataHex = clean.slice(128, 128 + length * 2);
+          const decoded = hexToUtf8(dataHex);
+          if (decoded) return decoded;
+        }
+      }
+      const direct = hexToUtf8(clean.slice(0, 64));
+      if (direct && /^[\x20-\x7E]+$/.test(direct)) return direct;
+    } catch {}
+    return '';
+  }
+
+  // 1. Live Multi-RPC calls concurrently (Bytecode, name, symbol, decimals)
+  let rawBytecode = null;
   let bytecodeSize = known ? 24500 : 0;
-  let rawBytecode = '';
-  let rpcSucceeded = false;
+  let onChainName = '';
+  let onChainSymbol = '';
 
   try {
-    const code = await rpc('eth_getCode', [addr, 'latest']);
+    const [code, nameHex, symbolHex] = await Promise.all([
+      rpc('eth_getCode', [addr, 'latest']).catch(() => null),
+      rpc('eth_call', [{ to: addr, data: '0x06fdde03' }, 'latest']).catch(() => null), // name()
+      rpc('eth_call', [{ to: addr, data: '0x95d89b41' }, 'latest']).catch(() => null), // symbol()
+    ]);
+
     if (code && code !== '0x' && code.length > 2) {
       rawBytecode = code;
       bytecodeSize = (code.length - 2) / 2;
-      rpcSucceeded = true;
-    } else if (code === '0x') {
-      rpcSucceeded = true;
-      bytecodeSize = 0;
     }
+    onChainName = decodeAbiString(nameHex);
+    onChainSymbol = decodeAbiString(symbolHex);
   } catch (rpcErr) {
-    console.warn('Bytecode query error:', rpcErr);
+    console.warn('RPC probing error:', rpcErr);
   }
 
-  // If known protocol, it is NEVER an EOA regardless of RPC state
-  if (!known && rpcSucceeded && bytecodeSize === 0) {
-    return {
-      address,
-      isEOA: true,
-      name: 'Personal Wallet Address',
-      healthScore: 0,
-      riskFlags: [{ level: 'Critical', text: 'This address is a personal wallet account (EOA), not a smart contract on Base.' }],
-      interactionSummary: {
-        signal: 'PERSONAL WALLET — NOT A PROTOCOL',
-        color: 'danger',
-        bg: 'var(--badge-danger)',
-        text: 'var(--badge-danger-text)',
-        border: 'rgba(220,38,38,0.25)',
-        reason: 'This address is an individual wallet account, not a decentralized protocol smart contract.',
-      },
-    };
-  }
+  const isToken = !!(onChainName || onChainSymbol);
+  if (isToken && bytecodeSize === 0) bytecodeSize = 3200;
 
-// Browser-safe hex to utf8 string decoder
-function hexToUtf8(hex) {
-  if (!hex) return '';
-  let str = '';
-  for (let i = 0; i < hex.length; i += 2) {
-    const code = parseInt(hex.substr(i, 2), 16);
-    if (code === 0) continue;
-    if (code >= 32 && code <= 126) {
-      str += String.fromCharCode(code);
-    }
-  }
-  return str.trim();
-}
-
-function decodeAbiString(hex) {
-  if (!hex || hex === '0x') return '';
-  const clean = hex.startsWith('0x') ? hex.slice(2) : hex;
-  if (clean.length < 64) return '';
-
-  try {
-    if (clean.length >= 128) {
-      const offset = parseInt(clean.slice(0, 64), 16);
-      if (offset === 32) {
-        const length = parseInt(clean.slice(64, 128), 16);
-        const dataHex = clean.slice(128, 128 + length * 2);
-        const decoded = hexToUtf8(dataHex);
-        if (decoded) return decoded;
-      }
-    }
-    const direct = hexToUtf8(clean.slice(0, 64));
-    if (direct && /^[\x20-\x7E]+$/.test(direct)) return direct;
-  } catch {}
-  return '';
-}
-
-  // 2. On-chain name() and symbol() querying
-  let onChainName = '';
-  let onChainSymbol = '';
-  try {
-    const [nameHex, symbolHex] = await Promise.all([
-      rpc('eth_call', [{ to: addr, data: '0x06fdde03' }, 'latest']).catch(() => null),
-      rpc('eth_call', [{ to: addr, data: '0x95d89b41' }, 'latest']).catch(() => null),
-    ]);
-    if (nameHex && nameHex.length >= 66) {
-      onChainName = decodeAbiString(nameHex);
-    }
-    if (symbolHex && symbolHex.length >= 66) {
-      onChainSymbol = decodeAbiString(symbolHex);
-    }
-  } catch {}
-
-  // 3. BaseScan Source Verification (Direct + Backend Proxy Fallback)
-  let sourceVerified = known ? true : false;
-  let contractName = known?.name || (onChainName ? (onChainSymbol ? `${onChainName} (${onChainSymbol})` : onChainName) : 'Base Protocol Contract');
+  // 2. BaseScan Source Code Verification
+  let isVerified = false;
+  let contractName = onChainName ? (onChainSymbol ? `${onChainName} (${onChainSymbol})` : onChainName) : (known?.name || 'Base Smart Contract');
   let compiler = null;
   let licenseType = null;
+  let isProxyFromScan = false;
+  let implementationFromScan = null;
 
   try {
     const keyParam = BASESCAN_KEY ? `&apikey=${BASESCAN_KEY}` : '';
-    const urls = [
-      `http://localhost:3001/api/basescan/source/${addr}`,
+    const scanUrls = [
       `https://api.etherscan.io/v2/api?chainid=8453&module=contract&action=getsourcecode&address=${addr}${keyParam}`,
-      `${BASESCAN_API}?module=contract&action=getsourcecode&address=${addr}${keyParam}`,
+      `https://api.basescan.org/api?module=contract&action=getsourcecode&address=${addr}${keyParam}`,
     ];
 
-    for (const url of urls) {
+    for (const scanUrl of scanUrls) {
       try {
-        const controller = new AbortController();
-        const timer = setTimeout(() => controller.abort(), 3000);
-        const res = await fetch(url, { signal: controller.signal });
-        clearTimeout(timer);
-        if (res.ok) {
-          const data = await res.json();
-          if (data.status === '1' && data.result?.[0]) {
-            const info = data.result[0];
+        const scanRes = await fetch(scanUrl);
+        if (scanRes.ok) {
+          const scanData = await scanRes.json();
+          if (scanData.status === '1' && scanData.result?.[0]) {
+            const info = scanData.result[0];
             if (info.SourceCode && info.SourceCode !== '') {
-              sourceVerified = true;
+              isVerified = true;
               contractName = onChainName ? (onChainSymbol ? `${onChainName} (${onChainSymbol})` : onChainName) : (info.ContractName || contractName);
               compiler = info.CompilerVersion;
               licenseType = info.LicenseType;
+              if (info.Proxy === '1') {
+                isProxyFromScan = true;
+                implementationFromScan = info.Implementation;
+              }
               break;
             }
           }
         }
       } catch {}
     }
-  } catch {}
+  } catch (scanErr) {
+    console.warn('BaseScan API check:', scanErr);
+  }
+
+  // If no bytecode, no token metadata, no verified code, and not a known protocol -> EOA
+  if (!known && !isToken && !isVerified && bytecodeSize === 0) {
+    return {
+      address,
+      isEOA: true,
+      name: 'Personal Wallet Address',
+      healthScore: 0,
+      riskFlags: [{ level: 'Critical', text: 'This address is a personal wallet account (EOA), not a smart contract or token on Base.' }],
+      interactionSummary: {
+        signal: 'PERSONAL WALLET — NOT A PROTOCOL',
+        color: 'danger',
+        bg: 'var(--badge-danger)',
+        text: 'var(--badge-danger-text)',
+        border: 'rgba(220,38,38,0.25)',
+        reason: 'This address is an individual wallet account, not a token or decentralized protocol smart contract.',
+      },
+    };
+  }
+
+  let sourceVerified = isVerified;
 
   // 4. Proxy Detection
-  let isProxy = false;
-  let implementationAddress = null;
+  let isProxy = isProxyFromScan;
+  let implementationAddress = implementationFromScan;
   try {
     const slot = await rpc('eth_getStorageAt', [
       addr,

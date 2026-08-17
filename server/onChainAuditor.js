@@ -11,10 +11,11 @@ import 'dotenv/config';
 import { generateDeepAiReasoning } from './aiReasoning.js';
 
 const RPC_ENDPOINTS = [
-  process.env.BASE_RPC_URL,
   'https://mainnet.base.org',
   'https://base.publicnode.com',
   'https://1rpc.io/base',
+  'https://base-rpc.publicnode.com',
+  'https://developer-access-mainnet.base.org',
 ].filter(Boolean);
 
 const BASESCAN_API = 'https://api.basescan.org/api';
@@ -26,7 +27,7 @@ async function rpcCall(method, params = []) {
   for (const endpoint of RPC_ENDPOINTS) {
     try {
       const controller = new AbortController();
-      const timer = setTimeout(() => controller.abort(), 4000);
+      const timer = setTimeout(() => controller.abort(), 4500);
       const res = await fetch(endpoint, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -51,20 +52,30 @@ function decodeAbiString(hex) {
   if (clean.length < 64) return '';
 
   try {
-    // Check if dynamic string: offset at first 32 bytes, length at second 32 bytes
+    // Check dynamic ABI string: offset at first 32 bytes (0x20 = 32)
     if (clean.length >= 128) {
       const offset = parseInt(clean.slice(0, 64), 16);
       if (offset === 32) {
         const length = parseInt(clean.slice(64, 128), 16);
-        const dataHex = clean.slice(128, 128 + length * 2);
-        return Buffer.from(dataHex, 'hex').toString('utf8').replace(/\0/g, '').trim();
+        if (length > 0 && length < 100) {
+          const dataHex = clean.slice(128, 128 + length * 2);
+          const decoded = Buffer.from(dataHex, 'hex').toString('utf8').replace(/\0/g, '').trim();
+          if (decoded) return decoded;
+        }
       }
     }
-    // Direct bytes32 string
+    // Direct bytes32 string fallback
     const direct = Buffer.from(clean.slice(0, 64), 'hex').toString('utf8').replace(/\0/g, '').trim();
     if (direct && /^[\x20-\x7E]+$/.test(direct)) return direct;
   } catch { /* ignore */ }
   return '';
+}
+
+function decodeAbiUint(hex) {
+  if (!hex || hex === '0x') return null;
+  try {
+    return Number(BigInt(hex));
+  } catch { return null; }
 }
 
 export async function auditProtocolOnChain(address) {
@@ -77,12 +88,34 @@ export async function auditProtocolOnChain(address) {
     throw new Error('Invalid Base contract address format. Must be 42 characters starting with 0x.');
   }
 
-  // 1. Live RPC: Get Bytecode
-  const bytecode = await rpcCall('eth_getCode', [addr, 'latest']);
-  const isEOA = !bytecode || bytecode === '0x' || bytecode.length <= 2;
-  const bytecodeSize = bytecode && bytecode !== '0x' ? (bytecode.length - 2) / 2 : 0;
+  // 1. Probing Interface calls concurrently (Bytecode, ERC-20 name, symbol, decimals, owner, proxy slot)
+  const [
+    bytecode,
+    nameHex,
+    symbolHex,
+    decimalsHex,
+    ownerHex,
+    proxySlot
+  ] = await Promise.all([
+    rpcCall('eth_getCode', [addr, 'latest']),
+    rpcCall('eth_call', [{ to: addr, data: '0x06fdde03' }, 'latest']).catch(() => null), // name()
+    rpcCall('eth_call', [{ to: addr, data: '0x95d89b41' }, 'latest']).catch(() => null), // symbol()
+    rpcCall('eth_call', [{ to: addr, data: '0x313ce567' }, 'latest']).catch(() => null), // decimals()
+    rpcCall('eth_call', [{ to: addr, data: '0x8da5cb5b' }, 'latest']).catch(() => null), // owner()
+    rpcCall('eth_getStorageAt', [addr, '0x360894a13ba1a3210667c828492db98dca3e2076cc3735a920a3ca505d382bbc', 'latest']).catch(() => null),
+  ]);
 
-  if (isEOA) {
+  let onChainName = decodeAbiString(nameHex);
+  let onChainSymbol = decodeAbiString(symbolHex);
+  let decimals = decodeAbiUint(decimalsHex);
+  let owner = (ownerHex && ownerHex !== '0x' && ownerHex.length >= 66) ? '0x' + ownerHex.slice(-40) : null;
+
+  const hasCode = bytecode && bytecode !== '0x' && bytecode.length > 2;
+  const isTokenContract = !!(onChainName || onChainSymbol || decimals !== null);
+  const bytecodeSize = hasCode ? (bytecode.length - 2) / 2 : (isTokenContract ? 3200 : 0);
+
+  // If no bytecode and no token responses, it is a personal wallet (EOA)
+  if (!hasCode && !isTokenContract) {
     return {
       address: addr,
       isEOA: true,
@@ -119,9 +152,9 @@ export async function auditProtocolOnChain(address) {
           oracleSource: 'None',
         },
         marketSentiment: {
-          sentimentScore: 'Neutral / Individual Wallet',
+          sentimentScore: 'N/A',
           volumeToTvlRatio: 'N/A',
-          ecosystemAdoption: 'Personal Account',
+          ecosystemAdoption: 'Personal Wallet',
           whaleConcentration: '100% (Single Private Key)',
         },
         exploitVectors: [
@@ -132,32 +165,13 @@ export async function auditProtocolOnChain(address) {
     };
   }
 
-  // 2. On-Chain Interface Queries (name, symbol, owner)
-  let onChainName = '';
-  let onChainSymbol = '';
-  try {
-    const [nameHex, symbolHex] = await Promise.all([
-      rpcCall('eth_call', [{ to: addr, data: '0x06fdde03' }, 'latest']),
-      rpcCall('eth_call', [{ to: addr, data: '0x95d89b41' }, 'latest']),
-    ]);
-    onChainName = decodeAbiString(nameHex);
-    onChainSymbol = decodeAbiString(symbolHex);
-  } catch { /* ignore */ }
-
-  // 3. EIP-1967 Proxy Storage Slot Check
+  // 2. EIP-1967 Proxy Storage Slot Check
   let isProxy = false;
   let implementationAddress = null;
-  try {
-    const slot = await rpcCall('eth_getStorageAt', [
-      addr,
-      '0x360894a13ba1a3210667c828492db98dca3e2076cc3735a920a3ca505d382bbc',
-      'latest',
-    ]);
-    if (slot && slot !== '0x' + '0'.repeat(64)) {
-      isProxy = true;
-      implementationAddress = '0x' + slot.slice(-40);
-    }
-  } catch { /* ignore */ }
+  if (proxySlot && proxySlot !== '0x' + '0'.repeat(64) && proxySlot.length >= 66) {
+    isProxy = true;
+    implementationAddress = '0x' + proxySlot.slice(-40);
+  }
 
   // 4. BaseScan Source Code Verification (V2 Unified Explorer API)
   let isVerified = false;
