@@ -212,7 +212,7 @@ export default function TelegramSentinel({ wallet, openWalletModal }) {
       </div>
 
       {/* ── Status Banner Cards ───────────────────────────────── */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '14px', marginBottom: '24px' }}>
+      <div className="responsive-stat-grid" style={{ marginBottom: '24px' }}>
         <div className="card" style={{ padding: '18px 20px' }}>
           <div className="stat-label">SENTINEL DAEMON</div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '6px' }}>
@@ -280,7 +280,7 @@ export default function TelegramSentinel({ wallet, openWalletModal }) {
         </span>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) minmax(0, 1fr)', gap: '20px', marginBottom: '24px', alignItems: 'start' }}>
+      <div className="responsive-two-col" style={{ marginBottom: '24px', alignItems: 'start' }}>
         {/* ── Left Column: Pairing & Test Alert ──────────────── */}
         {isBound ? (
           <div className="card" style={{ padding: '24px' }}>
@@ -489,7 +489,7 @@ export default function TelegramSentinel({ wallet, openWalletModal }) {
           You can interact with OrionX anytime directly inside Telegram:
         </p>
 
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '12px' }}>
+        <div className="responsive-cmd-grid">
           {[
             { cmd: '/status', desc: 'Live aggregate Health Factor, collateral, and debt breakdown across Moonwell/Compound/Aave.' },
             { cmd: '/yields', desc: 'Top Base Mainnet pools with net-gain APY calculations and reallocation routes.' },

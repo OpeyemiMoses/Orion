@@ -33,7 +33,7 @@ export default function Header({ currentView, setCurrentView, wallet, openWallet
       </div>
 
       {/* Center nav links (top bar nav like Conduit) */}
-      <nav style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+      <nav className="header-nav" style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
         <button
           onClick={() => setCurrentView('landing')}
           className="btn btn-ghost"

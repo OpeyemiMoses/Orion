@@ -271,7 +271,7 @@ export default function ProtocolAuditor() {
 
           {/* ── Health score + Stats grid ─────────────────── */}
           <div className="card" style={{ padding: '20px 24px', marginBottom: '20px' }}>
-            <div style={{ display: 'grid', gridTemplateColumns: '200px 1fr', gap: '24px', alignItems: 'center' }}>
+            <div className="responsive-health-grid">
               <div>
                 <div className="stat-label" style={{ marginBottom: '8px' }}>Health score</div>
                 <HealthBar score={r.healthScore} />
@@ -396,7 +396,7 @@ export default function ProtocolAuditor() {
               </div>
 
               {/* 5. Exploit Vectors & 6. What to Watch Grid */}
-              <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) minmax(0, 1fr)', gap: '16px' }}>
+              <div className="responsive-two-col" style={{ gap: '16px' }}>
                 {/* 5. Exploit Vector Assessment */}
                 <div className="card" style={{ padding: '20px' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px' }}>
