@@ -136,24 +136,13 @@ export default function WalletConnectModal({ isOpen, onClose, wallet, setWallet 
   ];
 
   return (
-    <div style={{
-      position: 'fixed',
-      inset: 0,
-      background: 'rgba(0,0,0,0.35)',
-      backdropFilter: 'blur(5px)',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      zIndex: 1000,
-      padding: '16px'
-    }}>
-      <div className="card" style={{
+    <div className="modal-backdrop">
+      <div className="modal-card" style={{
         maxWidth: '430px',
         width: '100%',
         padding: '0',
         borderRadius: '14px',
-        overflow: 'hidden',
-        boxShadow: 'var(--shadow-lg)'
+        overflow: 'hidden'
       }}>
         {/* Modal Header */}
         <div style={{

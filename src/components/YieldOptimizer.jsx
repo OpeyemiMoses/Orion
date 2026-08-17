@@ -242,8 +242,8 @@ export default function YieldOptimizer({ wallet, openWalletModal }) {
 
       {/* Reallocation log modal */}
       {log.length > 0 && (
-        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.2)', backdropFilter: 'blur(4px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 900, padding: '16px' }}>
-          <div className="card" style={{ maxWidth: '520px', width: '100%', padding: '24px', boxShadow: 'var(--shadow-lg)' }}>
+        <div className="modal-backdrop">
+          <div className="modal-card" style={{ maxWidth: '520px', width: '100%', padding: '24px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
               <span style={{ fontWeight: 600, fontSize: '14px', display: 'flex', alignItems: 'center', gap: '8px' }}>
                 <Activity size={15} style={{ color: 'var(--text-dim)' }} /> Reallocation action pipeline

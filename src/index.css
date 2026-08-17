@@ -69,6 +69,27 @@ body {
   box-shadow: var(--shadow-sm);
 }
 
+/* ── Modern Clean Modal Styling ──────────── */
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(245, 244, 242, 0.72);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 16px;
+}
+
+.modal-card {
+  background: #ffffff;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  box-shadow: 0 20px 40px -12px rgba(0, 0, 0, 0.12), 0 0 0 1px rgba(0, 0, 0, 0.04);
+}
+
 /* ── Buttons ─────────────────────────────── */
 .btn {
   display: inline-flex;

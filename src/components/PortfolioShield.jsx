@@ -379,12 +379,8 @@ export default function PortfolioShield({ wallet, openWalletModal }) {
 
       {/* Action log modal */}
       {simLog !== null && (
-        <div style={{
-          position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.25)',
-          backdropFilter: 'blur(4px)', display: 'flex', alignItems: 'center',
-          justifyContent: 'center', zIndex: 900, padding: '16px'
-        }}>
-          <div className="card" style={{ maxWidth: '480px', width: '100%', padding: '24px', boxShadow: 'var(--shadow-lg)' }}>
+        <div className="modal-backdrop">
+          <div className="modal-card" style={{ maxWidth: '480px', width: '100%', padding: '24px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
               <span style={{ fontWeight: 600, fontSize: '14px' }}>Security action console</span>
               {!simDone && <RefreshCw size={14} className="spin" style={{ color: 'var(--text-dim)' }} />}
@@ -419,8 +415,8 @@ export default function PortfolioShield({ wallet, openWalletModal }) {
             {simDone && (
               <button
                 onClick={() => { setSimLog(null); setRunningAction(''); setTxResult(null); setTxError(null); }}
-                className="btn btn-dark"
-                style={{ marginTop: '14px', width: '100%', justifyContent: 'center' }}
+                className="btn btn-outline"
+                style={{ marginTop: '14px', width: '100%', justifyContent: 'center', fontWeight: 600 }}
               >
                 Close and view updated state
               </button>
