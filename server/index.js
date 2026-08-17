@@ -1,4 +1,4 @@
-// ─── Orion Express Backend ───────────────────────────────────────────────────
+// ─── OrionX Express Backend ───────────────────────────────────────────────────
 // Responsibilities:
 //   - Proxy BaseScan API calls (uses server-side API key, avoids browser rate limits)
 //   - Cache DeFi Llama yields (60s TTL — avoid hammering free API)
@@ -156,7 +156,7 @@ app.post('/api/agent/scan-result', (req, res) => {
 
 // ── Start ─────────────────────────────────────────────────────────────────────
 app.listen(PORT, () => {
-  console.log(`\n  Orion backend running at http://localhost:${PORT}`);
+  console.log(`\n  OrionX backend running at http://localhost:${PORT}`);
   console.log(`  BaseScan API key: ${BASESCAN_KEY ? '✓ configured' : '✗ not set (rate-limited)'}`);
   console.log(`  Base RPC: ${BASE_RPC}\n`);
 });

@@ -126,8 +126,8 @@ export default function App() {
       }}>
         <div style={{ maxWidth: '1280px', margin: '0 auto', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <img src="/logo.png" alt="Orion" style={{ width: 18, height: 18, borderRadius: '50%', objectFit: 'cover' }} />
-            <span><strong>Orion</strong> • Autonomous Capital Sentinel on Base</span>
+            <img src="/logo.png" alt="OrionX" style={{ width: 18, height: 18, borderRadius: '50%', objectFit: 'cover' }} />
+            <span><strong>OrionX</strong> • Autonomous Capital Sentinel on Base</span>
           </div>
           <div>
             <a

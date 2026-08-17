@@ -162,7 +162,7 @@ export default function AutonomousAgent({ wallet, openWalletModal }) {
       {/* ── Header ──────────────────────────────────────────────── */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '24px', flexWrap: 'wrap', gap: '12px' }}>
         <div>
-          <h1 className="page-title">Orion Agent</h1>
+          <h1 className="page-title">OrionX Agent</h1>
           <p className="page-subtitle">
             Autonomous capital management on Base Mainnet — liquidation shield, yield optimizer, incentive tracker.
           </p>
@@ -503,7 +503,7 @@ export default function AutonomousAgent({ wallet, openWalletModal }) {
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
               <span style={{ fontWeight: 600, fontSize: '14px', display: 'flex', alignItems: 'center', gap: '8px' }}>
                 <Activity size={16} style={{ color: 'var(--text-dim)' }} />
-                Orion execution log
+                OrionX execution log
               </span>
               {execing && <Loader size={14} className="spin" style={{ color: 'var(--text-dim)' }} />}
             </div>

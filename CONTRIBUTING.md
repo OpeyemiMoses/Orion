@@ -1,6 +1,6 @@
-# Contributing to Orion
+# Contributing to OrionX
 
-Thank you for your interest in contributing to **Orion**! We welcome contributions from developers, researchers, and DeFi builders.
+Thank you for your interest in contributing to **OrionX**! We welcome contributions from developers, researchers, and DeFi builders.
 
 ---
 

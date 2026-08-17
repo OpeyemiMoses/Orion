@@ -105,7 +105,7 @@ export function auditCustomContract(address) {
     contractAddress: address,
     verifiableBytecode: isVerified,
     upvotes: 42 + (seed % 100),
-    description: 'Custom on-chain contract scanned by Orion.',
+    description: 'Custom on-chain contract scanned by OrionX.',
     trustScore: score,
     auditSummary: {
       bytecodeStatus: isVerified ? 'Verified Etherscan/BaseScan Bytecode' : 'Unverified Bytecode',

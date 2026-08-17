@@ -1,8 +1,8 @@
 <div align="center">
 
-<img src="public/logo.png" width="140" height="140" alt="Orion Logo" />
+<img src="public/logo.png" width="140" height="140" alt="OrionX Logo" />
 
-# Orion
+# OrionX
 
 **Autonomous DeFi Capital Co-Pilot on Base Mainnet**
 
@@ -32,7 +32,7 @@
 - [Project Structure](#project-structure)
 - [Data Access and Scope Limits](#data-access-and-scope-limits)
 - [System Architecture](#system-architecture)
-- [How Orion Works Autonomously](#how-orion-works-autonomously)
+- [How OrionX Works Autonomously](#how-orionx-works-autonomously)
 - [Security and Non-Custodial Architecture](#security-and-non-custodial-architecture)
 - [Getting Started](#getting-started)
 - [Environment Configuration](#environment-configuration)
@@ -44,7 +44,7 @@
 
 ## Overview
 
-Orion is an autonomous DeFi co-pilot engineered natively for Base Mainnet. It transforms passive crypto portfolios into self-defending, yield-maximizing, and incentive-qualifying positions.
+OrionX is an autonomous DeFi co-pilot engineered natively for Base Mainnet. It transforms passive crypto portfolios into self-defending, yield-maximizing, and incentive-qualifying positions.
 
 Operating continuously across 3 core dimensions:
 1. **Liquidation Shield:** Real-time multi-protocol collateral health monitoring and automated debt repayment routing.
@@ -55,7 +55,7 @@ Operating continuously across 3 core dimensions:
 
 ## The Problem and The Solution
 
-| The Challenge in DeFi | Orion Autonomous Solution |
+| The Challenge in DeFi | OrionX Autonomous Solution |
 |---|---|
 | **Liquidation Volatility:** Sudden price drops liquidate borrowing positions across Moonwell, Aave, and Compound if not manually monitored 24/7. | **Continuous Health Sensing:** The agent computes aggregate collateral health across protocols and autonomously formulates debt repayments if health factor falls below 1.5. |
 | **Yield Inefficiency:** Capital sits in low-yield pools because calculating net APY gains after factoring in gas fees and slippage is tedious. | **Mathematical Net-Gain Routing:** The agent continuously parses hundreds of Base pools, executing reallocations only when the net financial benefit is positive. |
@@ -65,7 +65,7 @@ Operating continuously across 3 core dimensions:
 
 ## Current MVP
 
-The current Minimum Viable Product (MVP) of Orion is live, operational, and connected to Base Mainnet:
+The current Minimum Viable Product (MVP) of OrionX is live, operational, and connected to Base Mainnet:
 
 * **Live Multi-Protocol Lending Telemetry:** Reads live user collateral and debt positions directly from Moonwell (`mToken.getAccountSnapshot`), Compound III (`Comet`), Aave V3 (`getUserAccountData`), and Seamless Protocol.
 * **Autonomous Health Factor Math:** Aggregates multi-market borrowing risk into a single live Health Factor metric with dynamic risk classification (`SAFE`, `CAUTION`, `CRITICAL`).
@@ -79,7 +79,7 @@ The current Minimum Viable Product (MVP) of Orion is live, operational, and conn
 
 ## Platform Infrastructure
 
-Orion is built on a resilient, high-throughput Web3 telemetry infrastructure designed for continuous client-side operation:
+OrionX is built on a resilient, high-throughput Web3 telemetry infrastructure designed for continuous client-side operation:
 
 ```
 ┌─────────────────────────────────────────────────────────────────────────┐
@@ -187,7 +187,7 @@ Orion is built on a resilient, high-throughput Web3 telemetry infrastructure des
 
 ## Quality Checks
 
-* **Zero-Custody Guarantee:** Orion does not collect, log, store, or transmit private keys, seed phrases, or credentials.
+* **Zero-Custody Guarantee:** OrionX does not collect, log, store, or transmit private keys, seed phrases, or credentials.
 * **Bytecode Verification:** Verifies smart contract addresses against on-chain bytecode (`eth_getCode`) to detect Personal Wallets (EOAs) vs. smart contracts.
 * **Proxy Architecture Detection:** Checks EIP-1967 implementation storage slots to identify upgradeable contracts and warn users of admin changeability.
 * **Strict Multi-RPC Fallback:** All read operations are wrapped with abort controllers and multi-node fallbacks to eliminate single-point-of-failure hangs.
@@ -254,19 +254,19 @@ orion/
 
 ## Data Access and Scope Limits
 
-To protect users and ensure deterministic behavior, Orion operates within explicit boundaries:
+To protect users and ensure deterministic behavior, OrionX operates within explicit boundaries:
 
 1. **Read Operations (Public RPC):**
-   * Orion queries only public, verifiable on-chain state (`eth_call`, `eth_getBalance`, `eth_getTransactionCount`, `eth_getCode`).
+   * OrionX queries only public, verifiable on-chain state (`eth_call`, `eth_getBalance`, `eth_getTransactionCount`, `eth_getCode`).
    * No proprietary, centralized database or opaque indexer is required.
 2. **Write Operations (Delegated Web3 Signing):**
-   * Orion **never** executes transactions autonomously without explicit user signing.
+   * OrionX **never** executes transactions autonomously without explicit user signing.
    * Every action (debt repayment, token approval, reallocation deposit) generates a standard EVM transaction payload presented to the user's connected wallet for review and approval.
 3. **Allowance Scope Limits:**
    * Reallocation approvals target exact required allowances rather than infinite/unbounded permissions.
    * Approval Shield includes 1-click 0-allowance revocation utilities.
 4. **Network Boundaries:**
-   * Orion strictly targets Base Mainnet (Chain ID `8453`, `0x2105`). Transactions on unverified networks are automatically intercepted and prompted for network switching.
+   * OrionX strictly targets Base Mainnet (Chain ID `8453`, `0x2105`). Transactions on unverified networks are automatically intercepted and prompted for network switching.
 
 ---
 
@@ -274,7 +274,7 @@ To protect users and ensure deterministic behavior, Orion operates within explic
 
 ```
 +-------------------------------------------------------------------------+
-|                               ORION AGENT                               |
+|                              ORIONX AGENT                               |
 |                                                                         |
 |  +-----------------------+  +---------------------+  +---------------+  |
 |  |  Liquidation Shield   |  |   Yield Optimizer   |  |   Incentive   |  |
@@ -300,7 +300,7 @@ To protect users and ensure deterministic behavior, Orion operates within explic
 
 ---
 
-## How Orion Works Autonomously
+## How OrionX Works Autonomously
 
 ```
        +-------------------------------------------------------------+
@@ -326,7 +326,7 @@ To protect users and ensure deterministic behavior, Orion operates within explic
 
 ## Security and Non-Custodial Architecture
 
-* **Zero Cloud Key Storage:** Orion **never** holds, stores, or transmits your private keys.
+* **Zero Cloud Key Storage:** OrionX **never** holds, stores, or transmits your private keys.
 * **Autonomous Intelligence + Delegated Execution:** The agent performs 100% of the continuous observation, mathematical modeling, and payload construction autonomously in the background. Transactions are dispatched directly to your Web3 wallet for signing.
 * **EIP-6963 Wallet Isolation:** Native multi-provider detection prevents extensions (like OKX or MetaMask) from hijacking or colliding with each other.
 

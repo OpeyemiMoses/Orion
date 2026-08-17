@@ -12,7 +12,7 @@ function DashboardMockup() {
           <div style={{ width: 8, height: 8, borderRadius: '50%', background: '#fde68a' }} />
           <div style={{ width: 8, height: 8, borderRadius: '50%', background: '#bbf7d0' }} />
           <span style={{ fontSize: '11px', color: 'var(--text-dim)', marginLeft: 10, fontFamily: 'var(--font-mono)' }}>
-            orion.app
+            orionx.app
           </span>
           <span style={{ marginLeft: 'auto', fontSize: '10px', color: '#16a34a', fontWeight: 600 }}>● LIVE</span>
         </div>
@@ -108,7 +108,7 @@ export default function LandingPage({ onLaunchApp, openWalletModal }) {
             Autonomous capital sentinel<br />on Base Network.
           </h1>
           <p className="rise-in rise-delay-3" style={{ fontSize: '15px', color: 'var(--text-muted)', lineHeight: 1.65, marginBottom: '32px', maxWidth: '580px' }}>
-            Orion protects against liquidation, chases the best yield across every Base protocol,
+            OrionX protects against liquidation, chases the best yield across every Base protocol,
             and qualifies you for active ecosystem incentives — 100% non-custodially.
           </p>
           <div className="rise-in rise-delay-4" style={{ display: 'flex', gap: '12px', flexWrap: 'wrap', marginBottom: '56px' }}>
@@ -127,7 +127,7 @@ export default function LandingPage({ onLaunchApp, openWalletModal }) {
           <div className="floating-beam-primary" style={{ width: '100%', maxWidth: '380px', marginTop: '-10px' }}>
             <img
               src="/orion-beam.png"
-              alt="Orion Autonomous Coordination"
+              alt="OrionX Autonomous Coordination"
               style={{ width: '100%', height: 'auto', display: 'block', pointerEvents: 'none' }}
             />
           </div>
@@ -220,7 +220,7 @@ export default function LandingPage({ onLaunchApp, openWalletModal }) {
         <div className="scroll-reveal scroll-delay-1">
           <h3 style={{ fontFamily: 'var(--font-display)', fontSize: '1.2rem', fontWeight: 400, marginBottom: '8px' }}>Start monitoring</h3>
           <p style={{ fontSize: '13px', color: 'var(--text-muted)', lineHeight: 1.6, marginBottom: '16px' }}>
-            Connect your wallet and activate live shield telemetry on Base. Orion never sees your private key.
+            Connect your wallet and activate live shield telemetry on Base. OrionX never sees your private key.
           </p>
           <button onClick={onLaunchApp} className="btn btn-dark">Launch app</button>
         </div>
@@ -244,8 +244,8 @@ export default function LandingPage({ onLaunchApp, openWalletModal }) {
       <div className="divider" />
       <footer className="scroll-reveal" style={{ padding: 'clamp(24px, 4vw, 36px) 0', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <img src="/logo.png" alt="Orion" style={{ width: 22, height: 22, borderRadius: '50%', objectFit: 'cover', border: '1px solid var(--border)' }} />
-          <span style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-main)' }}>Orion</span>
+          <img src="/logo.png" alt="OrionX" style={{ width: 22, height: 22, borderRadius: '50%', objectFit: 'cover', border: '1px solid var(--border)' }} />
+          <span style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-main)' }}>OrionX</span>
         </div>
         <span style={{ fontSize: '11px', color: 'var(--text-dim)' }}>
           Built by <a href="https://github.com/OpeyemiMoses" target="_blank" rel="noreferrer" style={{ color: 'var(--text-muted)', textDecoration: 'underline' }}>OpeyemiMoses</a> for Orion Agents Hackathon · Base Mainnet · {new Date().getFullYear()}

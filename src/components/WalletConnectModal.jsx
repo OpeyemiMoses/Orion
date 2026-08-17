@@ -179,7 +179,7 @@ export default function WalletConnectModal({ isOpen, onClose, wallet, setWallet 
         {wallet ? (
           <div style={{ padding: '20px' }}>
             <p style={{ fontSize: '12px', color: 'var(--text-muted)', marginBottom: '12px', lineHeight: 1.5 }}>
-              Orion is active on Base Mainnet.
+              OrionX is active on Base Mainnet.
             </p>
 
             <div style={{

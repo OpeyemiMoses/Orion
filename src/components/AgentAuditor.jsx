@@ -65,7 +65,7 @@ export default function AgentAuditor() {
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = `Orion_Audit_${(selected.name || 'contract').replace(/\s+/g, '_')}.json`;
+      a.download = `OrionX_Audit_${(selected.name || 'contract').replace(/\s+/g, '_')}.json`;
       a.click();
       URL.revokeObjectURL(url);
       setDownloading(false);
@@ -110,11 +110,11 @@ export default function AgentAuditor() {
         </div>
       )}
 
-      {/* ── Orion Agent Store picker ──────────────────────────────── */}
+      {/* ── OrionX Agent Store picker ─────────────────────────────── */}
       <div style={{ marginBottom: '32px' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
           <p style={{ fontSize: '11px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.07em', color: 'var(--text-dim)' }}>
-            Orion agent store
+            OrionX agent store
           </p>
           <p style={{ fontSize: '11px', color: 'var(--text-dim)' }}>
             Click any row to audit live from BaseScan

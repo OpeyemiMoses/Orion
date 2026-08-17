@@ -24,11 +24,11 @@ export default function Header({ currentView, setCurrentView, wallet, openWallet
       >
         <img
           src="/logo.png"
-          alt="Orion"
+          alt="OrionX"
           style={{ width: 26, height: 26, borderRadius: '50%', objectFit: 'cover', border: '1px solid var(--border)' }}
         />
         <span style={{ fontWeight: 700, fontSize: '15px', letterSpacing: '-0.01em' }}>
-          Orion
+          OrionX
         </span>
       </div>
 
