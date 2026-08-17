@@ -134,8 +134,8 @@ app.get('/api/telegram/subscribers', (_, res) => {
 
 // GET /api/telegram/preferences/:wallet
 app.get('/api/telegram/preferences/:wallet', (req, res) => {
-  const norm = req.params.wallet.toLowerCase();
-  const subs = Object.values(getSubscribers()).filter(s => s.walletAddress === norm);
+  const norm = (req.params.wallet || '').toLowerCase().trim();
+  const subs = Object.values(getSubscribers()).filter(s => s.walletAddress && s.walletAddress.toLowerCase().trim() === norm);
   if (!subs.length) {
     return res.json({ ok: true, isBound: false });
   }

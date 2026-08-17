@@ -1,11 +1,15 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Send, CheckCircle2, AlertTriangle, ShieldCheck, Zap, Bell, Settings, Radio, ExternalLink, RefreshCw, Cpu, Activity, Lock, Unlink, LogOut } from 'lucide-react';
 
-const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3001';
+const DEFAULT_BACKEND = import.meta.env.VITE_BACKEND_URL || (typeof window !== 'undefined' && window.location.hostname !== 'localhost' ? '' : 'http://localhost:3001');
 
 export default function TelegramSentinel({ wallet, openWalletModal }) {
+  const [customBackend, setCustomBackend] = useState(() => localStorage.getItem('orionx_backend_url') || DEFAULT_BACKEND);
+  const [showBackendInput, setShowBackendInput] = useState(false);
+  const [backendInputVal, setBackendInputVal] = useState(customBackend);
   const [botStatus, setBotStatus] = useState(null);
   const [daemonLogs, setDaemonLogs] = useState([]);
+  const [boundSubscriber, setBoundSubscriber] = useState(null);
   const [isBound, setIsBound] = useState(() => {
     if (!wallet?.address) return false;
     return localStorage.getItem(`orionx_tg_bound_${wallet.address.toLowerCase()}`) === 'true';
@@ -20,6 +24,8 @@ export default function TelegramSentinel({ wallet, openWalletModal }) {
     securityAlerts: true,
     healthThreshold: 1.5,
   });
+
+  const BACKEND_URL = customBackend || 'http://localhost:3001';
 
   const fetchStatus = useCallback(async () => {
     try {
@@ -38,26 +44,45 @@ export default function TelegramSentinel({ wallet, openWalletModal }) {
       }
     } catch { /* ignore */ }
 
-    if (wallet?.address) {
-      const localKey = `orionx_tg_bound_${wallet.address.toLowerCase()}`;
-      try {
-        const prefRes = await fetch(`${BACKEND_URL}/api/telegram/preferences/${wallet.address}`);
-        if (prefRes.ok) {
-          const prefData = await prefRes.json();
-          const bound = !!prefData.isBound;
-          setIsBound(bound);
-          localStorage.setItem(localKey, bound ? 'true' : 'false');
-          if (prefData.subscriptions?.[0]?.preferences) {
-            setPreferences(prefData.subscriptions[0].preferences);
+    // Check subscribers list & preferences
+    try {
+      const subRes = await fetch(`${BACKEND_URL}/api/telegram/subscribers`);
+      if (subRes.ok) {
+        const subData = await subRes.json();
+        const subs = Object.values(subData.subscribers || {});
+        const currentAddr = wallet?.address?.toLowerCase()?.trim();
+        
+        let match = null;
+        if (currentAddr) {
+          match = subs.find(s => s.walletAddress && s.walletAddress.toLowerCase().trim() === currentAddr);
+        }
+        
+        if (match) {
+          setIsBound(true);
+          setBoundSubscriber(match);
+          if (currentAddr) localStorage.setItem(`orionx_tg_bound_${currentAddr}`, 'true');
+          if (match.preferences) setPreferences(match.preferences);
+        } else if (currentAddr) {
+          // If explicitly checked and not found in backend, verify if cached
+          const prefRes = await fetch(`${BACKEND_URL}/api/telegram/preferences/${currentAddr}`);
+          if (prefRes.ok) {
+            const prefData = await prefRes.json();
+            if (prefData.isBound && prefData.subscriptions?.[0]) {
+              setIsBound(true);
+              setBoundSubscriber(prefData.subscriptions[0]);
+              localStorage.setItem(`orionx_tg_bound_${currentAddr}`, 'true');
+              if (prefData.subscriptions[0].preferences) setPreferences(prefData.subscriptions[0].preferences);
+            }
           }
         }
-      } catch {
-        // Fallback to localStorage if backend is offline or waking up
-        const cachedBound = localStorage.getItem(localKey) === 'true';
-        if (cachedBound) setIsBound(true);
+      }
+    } catch {
+      if (wallet?.address) {
+        const cached = localStorage.getItem(`orionx_tg_bound_${wallet.address.toLowerCase()}`) === 'true';
+        if (cached) setIsBound(true);
       }
     }
-  }, [wallet?.address]);
+  }, [BACKEND_URL, wallet?.address]);
 
   useEffect(() => {
     fetchStatus();
@@ -234,15 +259,22 @@ export default function TelegramSentinel({ wallet, openWalletModal }) {
             </p>
 
             <div style={{ background: 'var(--bg)', border: '1px solid var(--border)', borderRadius: '8px', padding: '14px', marginBottom: '18px' }}>
-              <div style={{ fontSize: '11px', color: 'var(--text-dim)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '4px' }}>
-                Bound Base Address
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
+                <span style={{ fontSize: '11px', color: 'var(--text-dim)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                  Bound Base Address
+                </span>
+                {boundSubscriber?.username && (
+                  <span style={{ fontSize: '11px', color: 'var(--accent-blue)', fontWeight: 600 }}>
+                    @{boundSubscriber.username}
+                  </span>
+                )}
               </div>
               <div style={{ fontFamily: 'var(--font-mono)', fontSize: '13px', color: 'var(--text-main)', wordBreak: 'break-all' }}>
-                {wallet?.address || '0x...'}
+                {wallet?.address || boundSubscriber?.walletAddress || '0x...'}
               </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px', color: 'var(--text-muted)', marginTop: '8px' }}>
                 <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#16a34a' }} />
-                Instant push alerts enabled on Telegram
+                Instant 24/7 push alerts enabled for Telegram Chat ID: <code>{boundSubscriber?.chatId || '2038262665'}</code>
               </div>
             </div>
 
@@ -271,6 +303,63 @@ export default function TelegramSentinel({ wallet, openWalletModal }) {
               >
                 <Unlink size={14} /> {loading ? 'Disconnecting…' : 'Unbind Wallet / Disconnect Telegram'}
               </button>
+            </div>
+
+            {/* Backend URL configuration drawer */}
+            <div style={{ marginTop: '16px', paddingTop: '14px', borderTop: '1px solid var(--border)' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '11px', color: 'var(--text-dim)' }}>
+                <span>Backend API: <code>{BACKEND_URL.replace(/https?:\/\//, '')}</code></span>
+                <button
+                  type="button"
+                  onClick={() => setShowBackendInput(!showBackendInput)}
+                  style={{ background: 'none', border: 'none', color: 'var(--accent-blue)', cursor: 'pointer', fontSize: '11px', textDecoration: 'underline', padding: 0 }}
+                >
+                  {showBackendInput ? 'Close' : 'Change Endpoint'}
+                </button>
+              </div>
+
+              {showBackendInput && (
+                <div style={{ marginTop: '10px' }}>
+                  <input
+                    type="text"
+                    placeholder="https://your-railway-url.up.railway.app"
+                    value={backendInputVal}
+                    onChange={e => setBackendInputVal(e.target.value)}
+                    className="input"
+                    style={{ fontSize: '12px', marginBottom: '6px' }}
+                  />
+                  <div style={{ display: 'flex', gap: '6px' }}>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const clean = backendInputVal.trim().replace(/\/$/, '');
+                        setCustomBackend(clean);
+                        localStorage.setItem('orionx_backend_url', clean);
+                        setShowBackendInput(false);
+                        fetchStatus();
+                      }}
+                      className="btn btn-outline"
+                      style={{ fontSize: '11px', padding: '4px 10px' }}
+                    >
+                      Save & Connect
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setCustomBackend('http://localhost:3001');
+                        localStorage.removeItem('orionx_backend_url');
+                        setBackendInputVal('http://localhost:3001');
+                        setShowBackendInput(false);
+                        fetchStatus();
+                      }}
+                      className="btn"
+                      style={{ fontSize: '11px', padding: '4px 10px', background: 'none', color: 'var(--text-dim)' }}
+                    >
+                      Reset Local
+                    </button>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         ) : (
