@@ -17,6 +17,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname  = path.dirname(__filename);
 const DATA_DIR   = path.join(__dirname, 'data');
 const DB_FILE    = path.join(DATA_DIR, 'subscribers.json');
+const LIVE_APP_URL = process.env.ALLOWED_ORIGIN || 'https://orionx-agent.vercel.app/';
 
 // Ensure data directory exists
 if (!fs.existsSync(DATA_DIR)) {
