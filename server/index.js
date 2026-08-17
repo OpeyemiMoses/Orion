@@ -35,8 +35,11 @@ const ALL_ORIGINS  = [...DEV_ORIGINS, ...PROD_ORIGINS];
 
 app.use(cors({
   origin: (origin, cb) => {
-    if (!origin || ALL_ORIGINS.includes(origin)) return cb(null, true);
-    cb(new Error(`CORS: origin ${origin} not allowed`));
+    // Allow server-to-server (no origin), localhost, listed origins, or any Vercel preview domain
+    if (!origin || ALL_ORIGINS.includes(origin) || origin.endsWith('.vercel.app') || process.env.NODE_ENV !== 'production') {
+      return cb(null, true);
+    }
+    cb(null, true); // Permissive for public Web3 API proxy
   },
   credentials: true,
 }));
