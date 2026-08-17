@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Send, CheckCircle2, AlertTriangle, ShieldCheck, Zap, Bell, Settings, Radio, ExternalLink, RefreshCw, Cpu, Activity, Lock } from 'lucide-react';
+import { Send, CheckCircle2, AlertTriangle, ShieldCheck, Zap, Bell, Settings, Radio, ExternalLink, RefreshCw, Cpu, Activity, Lock, Unlink, LogOut } from 'lucide-react';
 
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3001';
 
@@ -121,6 +121,26 @@ export default function TelegramSentinel({ wallet, openWalletModal }) {
     setTimeout(() => setTestAlertSent(false), 4000);
   };
 
+  const handleUnbind = async () => {
+    if (!wallet?.address) return;
+    setLoading(true);
+    try {
+      const res = await fetch(`${BACKEND_URL}/api/telegram/unbind`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ walletAddress: wallet.address }),
+      });
+      if (res.ok) {
+        setIsBound(false);
+        fetchStatus();
+      }
+    } catch (err) {
+      console.warn('Unbind failed:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <div>
       {/* ── Header ────────────────────────────────────────────── */}
@@ -186,61 +206,115 @@ export default function TelegramSentinel({ wallet, openWalletModal }) {
 
       <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) minmax(0, 1fr)', gap: '20px', marginBottom: '24px', alignItems: 'start' }}>
         {/* ── Left Column: Pairing & Test Alert ──────────────── */}
-        <div className="card" style={{ padding: '24px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '14px' }}>
-            <Send size={18} style={{ color: 'var(--accent-blue)' }} />
-            <h3 style={{ fontSize: '15px', fontWeight: 600, margin: 0 }}>Connect Telegram Bot</h3>
-          </div>
-          <p style={{ fontSize: '13px', color: 'var(--text-muted)', lineHeight: 1.6, marginBottom: '20px' }}>
-            Click below to launch <b>@{botUsername}</b> in Telegram. Your active wallet address will be paired automatically so you receive instant push notifications.
-          </p>
+        {isBound ? (
+          <div className="card" style={{ padding: '24px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '14px' }}>
+              <ShieldCheck size={18} style={{ color: '#16a34a' }} />
+              <h3 style={{ fontSize: '15px', fontWeight: 600, margin: 0 }}>Wallet Connected to Telegram</h3>
+              <span className="badge-settled" style={{ marginLeft: 'auto', fontSize: '10px' }}>ACTIVE</span>
+            </div>
 
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginBottom: '20px' }}>
-            <a
-              href={telegramDeepLink}
-              target="_blank"
-              rel="noreferrer"
-              className="btn btn-dark btn-lg"
-              style={{ justifyContent: 'center', gap: '8px', textDecoration: 'none' }}
-            >
-              <Send size={15} /> 1-Click Connect on Telegram <ExternalLink size={13} />
-            </a>
+            <p style={{ fontSize: '13px', color: 'var(--text-muted)', lineHeight: 1.6, marginBottom: '16px' }}>
+              Your Base wallet is securely paired with <b>@{botUsername}</b>. The 24/7 Sentinel daemon actively monitors your lending safety and sends push alerts.
+            </p>
 
-            <button
-              onClick={handleSendTestAlert}
-              className="btn btn-outline"
-              disabled={testAlertSent}
-              style={{ justifyContent: 'center', gap: '6px', fontSize: '13px' }}
-            >
-              {testAlertSent ? <><CheckCircle2 size={14} style={{ color: '#16a34a' }} /> Test Alert Dispatched to Telegram!</> : <><Bell size={14} /> Send Live Test Alert</>}
-            </button>
-          </div>
+            <div style={{ background: 'var(--bg)', border: '1px solid var(--border)', borderRadius: '8px', padding: '14px', marginBottom: '18px' }}>
+              <div style={{ fontSize: '11px', color: 'var(--text-dim)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '4px' }}>
+                Bound Base Address
+              </div>
+              <div style={{ fontFamily: 'var(--font-mono)', fontSize: '13px', color: 'var(--text-main)', wordBreak: 'break-all' }}>
+                {wallet?.address || '0x...'}
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px', color: 'var(--text-muted)', marginTop: '8px' }}>
+                <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#16a34a' }} />
+                Instant push alerts enabled on Telegram
+              </div>
+            </div>
 
-          <div className="divider" style={{ margin: '18px 0' }} />
-
-          {/* Manual Chat ID Link Form */}
-          <div>
-            <span style={{ fontSize: '12px', fontWeight: 600, color: 'var(--text-main)', display: 'block', marginBottom: '6px' }}>
-              Manual Pair (Enter Telegram Chat ID)
-            </span>
-            <form onSubmit={handleManualBind} style={{ display: 'flex', gap: '8px' }}>
-              <input
-                type="text"
-                placeholder="e.g. 123456789"
-                value={manualChatId}
-                onChange={e => setManualChatId(e.target.value)}
-                className="input"
-                style={{ fontSize: '12px' }}
-              />
-              <button type="submit" className="btn btn-outline" disabled={loading || !manualChatId} style={{ whiteSpace: 'nowrap', fontSize: '12px' }}>
-                {loading ? 'Pairing…' : 'Pair Wallet'}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+              <button
+                onClick={handleSendTestAlert}
+                className="btn btn-outline"
+                disabled={testAlertSent}
+                style={{ justifyContent: 'center', gap: '6px', fontSize: '13px' }}
+              >
+                {testAlertSent ? <><CheckCircle2 size={14} style={{ color: '#16a34a' }} /> Test Alert Dispatched to Telegram!</> : <><Bell size={14} /> Send Live Test Alert</>}
               </button>
-            </form>
-            <span style={{ fontSize: '11px', color: 'var(--text-dim)', marginTop: '6px', display: 'block' }}>
-              Tip: Send <code>/start</code> to @{botUsername} to view your Chat ID.
-            </span>
+
+              <button
+                onClick={handleUnbind}
+                disabled={loading}
+                className="btn"
+                style={{
+                  justifyContent: 'center',
+                  gap: '6px',
+                  fontSize: '13px',
+                  background: 'rgba(220, 38, 38, 0.08)',
+                  color: 'var(--accent-red)',
+                  border: '1px solid rgba(220, 38, 38, 0.25)',
+                }}
+              >
+                <Unlink size={14} /> {loading ? 'Disconnecting…' : 'Unbind Wallet / Disconnect Telegram'}
+              </button>
+            </div>
           </div>
-        </div>
+        ) : (
+          <div className="card" style={{ padding: '24px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '14px' }}>
+              <Send size={18} style={{ color: 'var(--accent-blue)' }} />
+              <h3 style={{ fontSize: '15px', fontWeight: 600, margin: 0 }}>Connect Telegram Bot</h3>
+            </div>
+            <p style={{ fontSize: '13px', color: 'var(--text-muted)', lineHeight: 1.6, marginBottom: '20px' }}>
+              Click below to launch <b>@{botUsername}</b> in Telegram. Your active wallet address will be paired automatically so you receive instant push notifications.
+            </p>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginBottom: '20px' }}>
+              <a
+                href={telegramDeepLink}
+                target="_blank"
+                rel="noreferrer"
+                className="btn btn-dark btn-lg"
+                style={{ justifyContent: 'center', gap: '8px', textDecoration: 'none' }}
+              >
+                <Send size={15} /> 1-Click Connect on Telegram <ExternalLink size={13} />
+              </a>
+
+              <button
+                onClick={handleSendTestAlert}
+                className="btn btn-outline"
+                disabled={testAlertSent}
+                style={{ justifyContent: 'center', gap: '6px', fontSize: '13px' }}
+              >
+                {testAlertSent ? <><CheckCircle2 size={14} style={{ color: '#16a34a' }} /> Test Alert Dispatched to Telegram!</> : <><Bell size={14} /> Send Live Test Alert</>}
+              </button>
+            </div>
+
+            <div className="divider" style={{ margin: '18px 0' }} />
+
+            {/* Manual Chat ID Link Form */}
+            <div>
+              <span style={{ fontSize: '12px', fontWeight: 600, color: 'var(--text-main)', display: 'block', marginBottom: '6px' }}>
+                Manual Pair (Enter Telegram Chat ID)
+              </span>
+              <form onSubmit={handleManualBind} style={{ display: 'flex', gap: '8px' }}>
+                <input
+                  type="text"
+                  placeholder="e.g. 123456789"
+                  value={manualChatId}
+                  onChange={e => setManualChatId(e.target.value)}
+                  className="input"
+                  style={{ fontSize: '12px' }}
+                />
+                <button type="submit" className="btn btn-outline" disabled={loading || !manualChatId} style={{ whiteSpace: 'nowrap', fontSize: '12px' }}>
+                  {loading ? 'Pairing…' : 'Pair Wallet'}
+                </button>
+              </form>
+              <span style={{ fontSize: '11px', color: 'var(--text-dim)', marginTop: '6px', display: 'block' }}>
+                Tip: Send <code>/start</code> to @{botUsername} to view your Chat ID.
+              </span>
+            </div>
+          </div>
+        )}
 
         {/* ── Right Column: Notification Preferences ─────────── */}
         <div className="card" style={{ padding: '24px' }}>

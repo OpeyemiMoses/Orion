@@ -1,0 +1,15 @@
+{
+  "2038262665": {
+    "chatId": 2038262665,
+    "username": "Only1enigma",
+    "walletAddress": "0xb4825abd70312e52083ddb55d3a00c0c309a6c09",
+    "boundAt": "2026-08-17T05:45:54.383Z",
+    "preferences": {
+      "liquidationAlerts": true,
+      "yieldAlerts": true,
+      "incentiveAlerts": true,
+      "securityAlerts": true,
+      "healthThreshold": 1.5
+    }
+  }
+}

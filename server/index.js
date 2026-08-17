@@ -102,6 +102,28 @@ app.post('/api/telegram/bind', (req, res) => {
   res.json({ ok: true, subscription: result });
 });
 
+// POST /api/telegram/unbind
+app.post('/api/telegram/unbind', (req, res) => {
+  const { chatId, walletAddress } = req.body;
+  if (chatId) {
+    unbindWallet(chatId);
+    return res.json({ ok: true, message: 'Chat unbound' });
+  }
+  if (walletAddress) {
+    const norm = walletAddress.toLowerCase();
+    const subs = getSubscribers();
+    let unboundCount = 0;
+    for (const [cId, sub] of Object.entries(subs)) {
+      if (sub.walletAddress === norm) {
+        unbindWallet(cId);
+        unboundCount++;
+      }
+    }
+    return res.json({ ok: true, unboundCount });
+  }
+  res.status(400).json({ error: 'chatId or walletAddress required' });
+});
+
 // GET /api/telegram/subscribers
 app.get('/api/telegram/subscribers', (_, res) => {
   res.json({ ok: true, subscribers: getSubscribers() });
