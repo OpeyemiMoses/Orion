@@ -159,9 +159,9 @@ export async function auditProtocolOnChain(address) {
     }
   } catch { /* ignore */ }
 
-  // 4. BaseScan Source Code Verification
+  // 4. BaseScan Source Code Verification (V2 Unified Explorer API)
   let isVerified = false;
-  let contractName = onChainName || 'Base Smart Contract';
+  let contractName = onChainName ? (onChainSymbol ? `${onChainName} (${onChainSymbol})` : onChainName) : 'Base Smart Contract';
   let compiler = null;
   let licenseType = null;
   let isProxyFromScan = false;
@@ -169,23 +169,32 @@ export async function auditProtocolOnChain(address) {
 
   try {
     const keyParam = BASESCAN_KEY ? `&apikey=${BASESCAN_KEY}` : '';
-    const scanUrl = `${BASESCAN_API}?module=contract&action=getsourcecode&address=${addr}${keyParam}`;
-    const scanRes = await fetch(scanUrl);
-    if (scanRes.ok) {
-      const scanData = await scanRes.json();
-      if (scanData.status === '1' && scanData.result?.[0]) {
-        const info = scanData.result[0];
-        if (info.SourceCode && info.SourceCode !== '') {
-          isVerified = true;
-          contractName = info.ContractName || contractName;
-          compiler = info.CompilerVersion;
-          licenseType = info.LicenseType;
-          if (info.Proxy === '1') {
-            isProxyFromScan = true;
-            implementationFromScan = info.Implementation;
+    const scanUrls = [
+      `https://api.etherscan.io/v2/api?chainid=8453&module=contract&action=getsourcecode&address=${addr}${keyParam}`,
+      `https://api.basescan.org/api?module=contract&action=getsourcecode&address=${addr}${keyParam}`,
+    ];
+
+    for (const scanUrl of scanUrls) {
+      try {
+        const scanRes = await fetch(scanUrl);
+        if (scanRes.ok) {
+          const scanData = await scanRes.json();
+          if (scanData.status === '1' && scanData.result?.[0]) {
+            const info = scanData.result[0];
+            if (info.SourceCode && info.SourceCode !== '') {
+              isVerified = true;
+              contractName = onChainName ? (onChainSymbol ? `${onChainName} (${onChainSymbol})` : onChainName) : (info.ContractName || contractName);
+              compiler = info.CompilerVersion;
+              licenseType = info.LicenseType;
+              if (info.Proxy === '1') {
+                isProxyFromScan = true;
+                implementationFromScan = info.Implementation;
+              }
+              break;
+            }
           }
         }
-      }
+      } catch {}
     }
   } catch (scanErr) {
     console.warn('[OnChainAuditor] BaseScan lookup note:', scanErr.message);

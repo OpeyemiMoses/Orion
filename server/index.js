@@ -151,6 +151,8 @@ app.get('/api/daemon/logs', (_, res) => {
   });
 });
 
+import { auditProtocolOnChain } from './onChainAuditor.js';
+
 // ── 3. Deep AI Protocol Reasoning API ─────────────────────────────────────────
 // POST /api/ai/audit
 app.post('/api/ai/audit', (req, res) => {
@@ -159,35 +161,64 @@ app.post('/api/ai/audit', (req, res) => {
   res.json({ ok: true, reasoning });
 });
 
-// ── 4. BaseScan proxy ─────────────────────────────────────────────────────────
+// POST /api/ai/audit-full (Full on-chain + BaseScan V2 + DeFi Llama analysis)
+app.post('/api/ai/audit-full', async (req, res) => {
+  const { address } = req.body;
+  if (!address) return res.status(400).json({ error: 'address required' });
+  try {
+    const result = await auditProtocolOnChain(address);
+    res.json({ ok: true, result });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// ── 4. BaseScan V2 proxy ───────────────────────────────────────────────────────
 app.get('/api/basescan/source/:address', async (req, res) => {
   const { address } = req.params;
   if (!/^0x[a-fA-F0-9]{40}$/.test(address)) {
     return res.status(400).json({ error: 'Invalid address format' });
   }
 
-  try {
-    const keyParam = BASESCAN_KEY ? `&apikey=${BASESCAN_KEY}` : '';
-    const url = `${BASESCAN_API}?module=contract&action=getsourcecode&address=${address}${keyParam}`;
-    const upstream = await fetch(url);
-    const data = await upstream.json();
-    res.json(data);
-  } catch (e) {
-    res.status(502).json({ error: 'BaseScan unavailable', detail: e.message });
+  const keyParam = BASESCAN_KEY ? `&apikey=${BASESCAN_KEY}` : '';
+  const urls = [
+    `https://api.etherscan.io/v2/api?chainid=8453&module=contract&action=getsourcecode&address=${address}${keyParam}`,
+    `https://api.basescan.org/api?module=contract&action=getsourcecode&address=${address}${keyParam}`,
+  ];
+
+  for (const url of urls) {
+    try {
+      const upstream = await fetch(url);
+      if (upstream.ok) {
+        const data = await upstream.json();
+        if (data.status === '1' && data.result?.[0]?.SourceCode) {
+          return res.json(data);
+        }
+      }
+    } catch {}
   }
+
+  res.json({ status: '0', message: 'No source code found', result: [] });
 });
 
 app.get('/api/basescan/abi/:address', async (req, res) => {
   const { address } = req.params;
-  try {
-    const keyParam = BASESCAN_KEY ? `&apikey=${BASESCAN_KEY}` : '';
-    const url = `${BASESCAN_API}?module=contract&action=getabi&address=${address}${keyParam}`;
-    const upstream = await fetch(url);
-    const data = await upstream.json();
-    res.json(data);
-  } catch (e) {
-    res.status(502).json({ error: 'BaseScan unavailable', detail: e.message });
+  const keyParam = BASESCAN_KEY ? `&apikey=${BASESCAN_KEY}` : '';
+  const urls = [
+    `https://api.etherscan.io/v2/api?chainid=8453&module=contract&action=getabi&address=${address}${keyParam}`,
+    `https://api.basescan.org/api?module=contract&action=getabi&address=${address}${keyParam}`,
+  ];
+
+  for (const url of urls) {
+    try {
+      const upstream = await fetch(url);
+      if (upstream.ok) {
+        const data = await upstream.json();
+        if (data.status === '1') return res.json(data);
+      }
+    } catch {}
   }
+  res.json({ status: '0', message: 'ABI not found', result: '' });
 });
 
 // ── 5. Base RPC proxy ─────────────────────────────────────────────────────────

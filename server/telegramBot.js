@@ -527,6 +527,14 @@ async function handleIncentivesCommand(chatId) {
   await sendTelegramMessage(chatId, incentivesMsg, keyboard);
 }
 
+function escapeTg(str) {
+  if (!str) return '';
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;');
+}
+
 async function handleAuditCommand(chatId, contractAddress) {
   await sendTelegramMessage(chatId, `🧠 <i>Querying Base Multi-RPC, BaseScan & DeFi Llama for <code>${contractAddress}</code>...</i>`);
 
@@ -552,49 +560,49 @@ This is an individual user's wallet address, not a decentralized protocol smart 
 
     const auditReport = `
 <b>🧠 DEEP AI PROTOCOL AUDIT REPORT</b>
-<b>Protocol:</b> <b>${nameDisplay}</b>
+<b>Protocol:</b> <b>${escapeTg(nameDisplay)}</b>
 <b>Address:</b> <code>${result.address}</code>
-<b>Safety Score:</b> <b>${ai.score}/100 — Grade ${ai.grade}</b>
-<b>Risk Classification:</b> <b>${ai.riskLevel}</b>
-<b>Verified Bytecode:</b> ${result.isVerified ? `✅ Yes (${result.compiler || 'Solidity'})` : '⚠️ Unverified Source'}
+<b>Safety Score:</b> <b>${ai.score}/100 — Grade ${escapeTg(ai.grade)}</b>
+<b>Risk Classification:</b> <b>${escapeTg(ai.riskLevel)}</b>
+<b>Verified Bytecode:</b> ${result.isVerified ? `✅ Yes (${escapeTg(result.compiler || 'Solidity')})` : '⚠️ Unverified Source'}
 <b>Proxy Pattern:</b> ${result.isProxy ? `⚡ Upgradeable (Impl: <code>${result.implementationAddress?.slice(0,10)}...</code>)` : '🔒 Immutable Bytecode'}
 <b>Contract Size:</b> ${result.bytecodeSize.toLocaleString()} bytes
 
 ━━━━━━━━━━━━━━━━━━━
 <b>1. Details & Architecture:</b>
-• <b>Type:</b> ${ai.architecture.contractType}
-• <b>Governance:</b> ${ai.architecture.governanceControl}
-• <b>Timelock:</b> ${ai.architecture.timelockDelay}
-• <b>License:</b> ${result.licenseType || 'Open Source'}
+• <b>Type:</b> ${escapeTg(ai.architecture.contractType)}
+• <b>Governance:</b> ${escapeTg(ai.architecture.governanceControl)}
+• <b>Timelock:</b> ${escapeTg(ai.architecture.timelockDelay)}
+• <b>License:</b> ${escapeTg(result.licenseType || 'Open Source')}
 
 ━━━━━━━━━━━━━━━━━━━
 <b>2. Health & Solvency:</b>
-• <b>Status:</b> ${ai.healthMetrics.status}
-• <b>Solvency Ratio:</b> ${ai.healthMetrics.solvencyRatio}
-• <b>Bad Debt:</b> ${ai.healthMetrics.badDebtExposure}
-• <b>TVL Trajectory:</b> ${ai.healthMetrics.tvlTrajectory}
-• <b>Reported TVL:</b> ${result.tvl}
+• <b>Status:</b> ${escapeTg(ai.healthMetrics.status)}
+• <b>Solvency Ratio:</b> ${escapeTg(ai.healthMetrics.solvencyRatio)}
+• <b>Bad Debt:</b> ${escapeTg(ai.healthMetrics.badDebtExposure)}
+• <b>TVL Trajectory:</b> ${escapeTg(ai.healthMetrics.tvlTrajectory)}
+• <b>Reported TVL:</b> ${escapeTg(result.tvl)}
 
 ━━━━━━━━━━━━━━━━━━━
 <b>3. Price & Liquidity Depth:</b>
-• <b>Stability:</b> ${ai.priceLiquidity.priceStability}
-• <b>DEX Depth:</b> ${ai.priceLiquidity.dexDepth}
-• <b>Slippage Model:</b> ${ai.priceLiquidity.slippageModel}
-• <b>Oracle Feeds:</b> ${ai.priceLiquidity.oracleSource}
+• <b>Stability:</b> ${escapeTg(ai.priceLiquidity.priceStability)}
+• <b>DEX Depth:</b> ${escapeTg(ai.priceLiquidity.dexDepth)}
+• <b>Slippage Model:</b> ${escapeTg(ai.priceLiquidity.slippageModel)}
+• <b>Oracle Feeds:</b> ${escapeTg(ai.priceLiquidity.oracleSource)}
 
 ━━━━━━━━━━━━━━━━━━━
 <b>4. Market Sentiment & Velocity:</b>
-• <b>Sentiment:</b> ${ai.marketSentiment.sentimentScore}
-• <b>Volume/TVL Velocity:</b> ${ai.marketSentiment.volumeToTvlRatio}
-• <b>Whale Dispersion:</b> ${ai.marketSentiment.whaleConcentration}
+• <b>Sentiment:</b> ${escapeTg(ai.marketSentiment.sentimentScore)}
+• <b>Volume/TVL Velocity:</b> ${escapeTg(ai.marketSentiment.volumeToTvlRatio)}
+• <b>Whale Dispersion:</b> ${escapeTg(ai.marketSentiment.whaleConcentration)}
 
 ━━━━━━━━━━━━━━━━━━━
 <b>5. Exploit Vector Assessment:</b>
-${ai.exploitVectors.map(v => `• <b>${v.vector}:</b> [${v.risk} Risk] ${v.detail}`).join('\n')}
+${ai.exploitVectors.map(v => `• <b>${escapeTg(v.vector)}:</b> [${escapeTg(v.risk)} Risk] ${escapeTg(v.detail)}`).join('\n')}
 
 ━━━━━━━━━━━━━━━━━━━
 <b>6. Critical "What to Watch":</b>
-${ai.whatToWatch.map((w, idx) => `• <b>${idx + 1}.</b> ${w}`).join('\n')}
+${ai.whatToWatch.map((w, idx) => `• <b>${idx + 1}.</b> ${escapeTg(w)}`).join('\n')}
     `.trim();
 
     const keyboard = [
@@ -606,7 +614,7 @@ ${ai.whatToWatch.map((w, idx) => `• <b>${idx + 1}.</b> ${w}`).join('\n')}
 
     await sendTelegramMessage(chatId, auditReport, keyboard);
   } catch (err) {
-    await sendTelegramMessage(chatId, `❌ <b>Audit Error:</b> ${err.message}`);
+    await sendTelegramMessage(chatId, `❌ <b>Audit Error:</b> ${escapeTg(err.message)}`);
   }
 }
 

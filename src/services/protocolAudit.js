@@ -327,6 +327,41 @@ export async function auditProtocol(address) {
     };
   }
 
+// Browser-safe hex to utf8 string decoder
+function hexToUtf8(hex) {
+  if (!hex) return '';
+  let str = '';
+  for (let i = 0; i < hex.length; i += 2) {
+    const code = parseInt(hex.substr(i, 2), 16);
+    if (code === 0) continue;
+    if (code >= 32 && code <= 126) {
+      str += String.fromCharCode(code);
+    }
+  }
+  return str.trim();
+}
+
+function decodeAbiString(hex) {
+  if (!hex || hex === '0x') return '';
+  const clean = hex.startsWith('0x') ? hex.slice(2) : hex;
+  if (clean.length < 64) return '';
+
+  try {
+    if (clean.length >= 128) {
+      const offset = parseInt(clean.slice(0, 64), 16);
+      if (offset === 32) {
+        const length = parseInt(clean.slice(64, 128), 16);
+        const dataHex = clean.slice(128, 128 + length * 2);
+        const decoded = hexToUtf8(dataHex);
+        if (decoded) return decoded;
+      }
+    }
+    const direct = hexToUtf8(clean.slice(0, 64));
+    if (direct && /^[\x20-\x7E]+$/.test(direct)) return direct;
+  } catch {}
+  return '';
+}
+
   // 2. On-chain name() and symbol() querying
   let onChainName = '';
   let onChainSymbol = '';
@@ -336,27 +371,10 @@ export async function auditProtocol(address) {
       rpc('eth_call', [{ to: addr, data: '0x95d89b41' }, 'latest']).catch(() => null),
     ]);
     if (nameHex && nameHex.length >= 66) {
-      // Decode string
-      try {
-        const clean = nameHex.slice(2);
-        if (clean.length >= 128) {
-          const len = parseInt(clean.slice(64, 128), 16);
-          const data = clean.slice(128, 128 + len * 2);
-          const decoded = Buffer.from(data, 'hex').toString('utf8').replace(/\0/g, '').trim();
-          if (decoded) onChainName = decoded;
-        }
-      } catch {}
+      onChainName = decodeAbiString(nameHex);
     }
     if (symbolHex && symbolHex.length >= 66) {
-      try {
-        const clean = symbolHex.slice(2);
-        if (clean.length >= 128) {
-          const len = parseInt(clean.slice(64, 128), 16);
-          const data = clean.slice(128, 128 + len * 2);
-          const decoded = Buffer.from(data, 'hex').toString('utf8').replace(/\0/g, '').trim();
-          if (decoded) onChainSymbol = decoded;
-        }
-      } catch {}
+      onChainSymbol = decodeAbiString(symbolHex);
     }
   } catch {}
 
@@ -369,8 +387,9 @@ export async function auditProtocol(address) {
   try {
     const keyParam = BASESCAN_KEY ? `&apikey=${BASESCAN_KEY}` : '';
     const urls = [
-      `${BASESCAN_API}?module=contract&action=getsourcecode&address=${addr}${keyParam}`,
       `http://localhost:3001/api/basescan/source/${addr}`,
+      `https://api.etherscan.io/v2/api?chainid=8453&module=contract&action=getsourcecode&address=${addr}${keyParam}`,
+      `${BASESCAN_API}?module=contract&action=getsourcecode&address=${addr}${keyParam}`,
     ];
 
     for (const url of urls) {
@@ -385,7 +404,7 @@ export async function auditProtocol(address) {
             const info = data.result[0];
             if (info.SourceCode && info.SourceCode !== '') {
               sourceVerified = true;
-              contractName = info.ContractName || contractName;
+              contractName = onChainName ? (onChainSymbol ? `${onChainName} (${onChainSymbol})` : onChainName) : (info.ContractName || contractName);
               compiler = info.CompilerVersion;
               licenseType = info.LicenseType;
               break;
