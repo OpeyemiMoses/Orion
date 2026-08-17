@@ -145,8 +145,9 @@ export async function sendTelegramMessage(chatId, text, inlineKeyboard = null) {
 
 // ── Alert Dispatcher to Bound Wallet Subscribers ──────────────────────────────
 export async function sendAlertToWallet(walletAddress, { type, title, message, actionUrl }) {
-  const normWallet = (walletAddress || '').toLowerCase();
-  const matched = Object.values(subscribers).filter(s => s.walletAddress === normWallet);
+  const norm = (walletAddress || '').toLowerCase();
+  const matched = Object.values(subscribers).filter(s => s.walletAddress === norm);
+  if (!matched.length) return;
 
   for (const sub of matched) {
     const prefs = sub.preferences || {};
@@ -166,7 +167,7 @@ ${message}
     `.trim();
 
     const keyboard = [
-      [{ text: '🛡️ Open OrionX Repository', url: 'https://github.com/OpeyemiMoses/Orion' }],
+      [{ text: '🛡️ Open OrionX', url: actionUrl || LIVE_APP_URL }],
       [{ text: '📊 Check Position Status', callback_data: 'cmd_status' }],
     ];
 
@@ -190,7 +191,7 @@ function getMainMenuKeyboard() {
     ],
     [
       { text: '⚙️ Alert Settings', callback_data: 'cmd_settings' },
-      { text: '🌐 Open OrionX GitHub', url: 'https://github.com/OpeyemiMoses/Orion' },
+      { text: '🛡️ Open OrionX', url: LIVE_APP_URL },
     ],
   ];
 }
@@ -490,7 +491,7 @@ Moving idle USDC to <b>Aerodrome USDC/ETH</b> yields <b>+10.78% net APY gain</b>
   `.trim();
 
   const keyboard = [
-    [{ text: '🌐 View on OrionX GitHub', url: 'https://github.com/OpeyemiMoses/Orion' }],
+    [{ text: '🛡️ Open OrionX', url: LIVE_APP_URL }],
     [{ text: '📊 Check Position Health', callback_data: 'cmd_status' }],
   ];
 
@@ -521,7 +522,7 @@ async function handleIncentivesCommand(chatId) {
   `.trim();
 
   const keyboard = [
-    [{ text: '🌐 View on OrionX GitHub', url: 'https://github.com/OpeyemiMoses/Orion' }],
+    [{ text: '🛡️ Open OrionX', url: LIVE_APP_URL }],
   ];
 
   await sendTelegramMessage(chatId, incentivesMsg, keyboard);
@@ -608,7 +609,7 @@ ${ai.whatToWatch.map((w, idx) => `• <b>${idx + 1}.</b> ${escapeTg(w)}`).join('
     const keyboard = [
       [
         { text: '🔍 View on BaseScan', url: `https://basescan.org/address/${result.address}` },
-        { text: '🌐 OrionX GitHub', url: 'https://github.com/OpeyemiMoses/Orion' },
+        { text: '🛡️ Open OrionX', url: LIVE_APP_URL },
       ],
     ];
 
