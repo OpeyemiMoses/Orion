@@ -2,11 +2,13 @@ import React, { useState, useEffect, useCallback } from 'react';
 import Header from './components/Header';
 import LandingPage from './components/LandingPage';
 import Dashboard from './components/Dashboard';
+import Documentation from './components/Documentation';
+import HelpCenter from './components/HelpCenter';
 import WalletConnectModal from './components/WalletConnectModal';
 import { connectWeb3Wallet, getDemoWallet } from './services/web3Wallet';
 
 export default function App() {
-  const [currentView, setCurrentView] = useState('landing'); // 'landing' | 'dashboard'
+  const [currentView, setCurrentView] = useState('landing'); // 'landing' | 'dashboard' | 'docs' | 'help'
   const [wallet, setWallet] = useState(null);
   const [isWalletModalOpen, setIsWalletModalOpen] = useState(false);
 
@@ -93,15 +95,27 @@ export default function App() {
 
       {/* Main View Router */}
       <main style={{ flex: 1 }}>
-        {currentView === 'landing' ? (
+        {currentView === 'landing' && (
           <LandingPage
             onLaunchApp={handleLaunchApp}
             openWalletModal={() => setIsWalletModalOpen(true)}
+            setCurrentView={setCurrentView}
           />
-        ) : (
+        )}
+        {currentView === 'dashboard' && (
           <Dashboard
             wallet={wallet}
             openWalletModal={() => setIsWalletModalOpen(true)}
+            setCurrentView={setCurrentView}
+          />
+        )}
+        {currentView === 'docs' && (
+          <Documentation
+            setCurrentView={setCurrentView}
+          />
+        )}
+        {currentView === 'help' && (
+          <HelpCenter
             setCurrentView={setCurrentView}
           />
         )}

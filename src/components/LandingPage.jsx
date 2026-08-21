@@ -250,10 +250,12 @@ export default function LandingPage({ onLaunchApp, openWalletModal }) {
         <span style={{ fontSize: '11px', color: 'var(--text-dim)' }}>
           Built by <a href="https://github.com/OpeyemiMoses" target="_blank" rel="noreferrer" style={{ color: 'var(--text-muted)', textDecoration: 'underline' }}>Yemi</a> for Orion Agents Hackathon · Base Mainnet · {new Date().getFullYear()}
         </span>
-        <div style={{ display: 'flex', gap: '16px' }}>
+        <div style={{ display: 'flex', gap: '12px', alignItems: 'center', flexWrap: 'wrap' }}>
+          <button onClick={() => setCurrentView?.('docs')} className="btn btn-ghost" style={{ fontSize: '12px', padding: '4px 8px', color: 'var(--text-muted)' }}>Documentation</button>
+          <button onClick={() => setCurrentView?.('help')} className="btn btn-ghost" style={{ fontSize: '12px', padding: '4px 8px', color: 'var(--text-muted)' }}>Help Centre</button>
+          <a href="https://t.me/OrionXSentinelBot" target="_blank" rel="noreferrer" style={{ fontSize: '12px', color: 'var(--text-muted)', textDecoration: 'none' }}>Telegram Bot</a>
           <a href="https://github.com/OpeyemiMoses/Orion" target="_blank" rel="noreferrer" style={{ fontSize: '12px', color: 'var(--text-muted)', textDecoration: 'none' }}>GitHub</a>
           <a href="https://basescan.org" target="_blank" rel="noreferrer" style={{ fontSize: '12px', color: 'var(--text-muted)', textDecoration: 'none' }}>BaseScan</a>
-          <a href="https://defillama.com/chain/Base" target="_blank" rel="noreferrer" style={{ fontSize: '12px', color: 'var(--text-muted)', textDecoration: 'none' }}>DeFi Llama</a>
         </div>
       </footer>
     </div>

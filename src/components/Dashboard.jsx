@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Shield, ShieldAlert, TrendingUp, Gift, ScanSearch, Send, Settings as SettingsIcon, ArrowLeft } from 'lucide-react';
+import { Shield, ShieldAlert, TrendingUp, Gift, ScanSearch, Send, Settings as SettingsIcon, ArrowLeft, BookOpen, HelpCircle } from 'lucide-react';
 import PortfolioShield  from './PortfolioShield';
 import LiquidationShield from './LiquidationShield';
 import YieldOptimizer   from './YieldOptimizer';
@@ -64,9 +64,15 @@ export default function Dashboard({ wallet, openWalletModal, setCurrentView }) {
         </div>
 
         <div style={{ borderTop: '1px solid var(--border)', marginTop: '8px', paddingTop: '4px' }}>
-          <div className="sidebar-section-label">System</div>
+          <div className="sidebar-section-label">System & Support</div>
           <button onClick={() => handleNavigate('settings')} className={`sidebar-link ${tab === 'settings' ? 'active' : ''}`}>
             <SettingsIcon size={14} />Settings
+          </button>
+          <button onClick={() => setCurrentView?.('docs')} className="sidebar-link">
+            <BookOpen size={14} />Documentation
+          </button>
+          <button onClick={() => setCurrentView?.('help')} className="sidebar-link">
+            <HelpCircle size={14} />Help Centre
           </button>
         </div>
       </aside>

@@ -32,7 +32,7 @@ export default function Header({ currentView, setCurrentView, wallet, openWallet
         </span>
       </div>
 
-      {/* Center nav links (top bar nav like Conduit) */}
+      {/* Center nav links */}
       <nav className="header-nav" style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
         <button
           onClick={() => setCurrentView('landing')}
@@ -57,6 +57,30 @@ export default function Header({ currentView, setCurrentView, wallet, openWallet
           }}
         >
           Shield Console
+        </button>
+        <button
+          onClick={() => setCurrentView('docs')}
+          className="btn btn-ghost"
+          style={{
+            fontWeight: currentView === 'docs' ? 600 : 400,
+            color: currentView === 'docs' ? 'var(--text-main)' : 'var(--text-muted)',
+            padding: '5px 10px',
+            fontSize: '13px'
+          }}
+        >
+          Documentation
+        </button>
+        <button
+          onClick={() => setCurrentView('help')}
+          className="btn btn-ghost"
+          style={{
+            fontWeight: currentView === 'help' ? 600 : 400,
+            color: currentView === 'help' ? 'var(--text-main)' : 'var(--text-muted)',
+            padding: '5px 10px',
+            fontSize: '13px'
+          }}
+        >
+          Help Centre
         </button>
       </nav>
 
