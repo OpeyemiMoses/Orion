@@ -145,11 +145,12 @@ app.get('/api/telegram/preferences/:wallet', (req, res) => {
 
 // POST /api/telegram/preferences
 app.post('/api/telegram/preferences', (req, res) => {
-  const { chatId, preferences } = req.body;
-  if (!chatId || !preferences) {
-    return res.status(400).json({ error: 'chatId and preferences required' });
+  const { chatId, walletAddress, preferences } = req.body;
+  const target = chatId || walletAddress;
+  if (!target || !preferences) {
+    return res.status(400).json({ error: 'chatId or walletAddress and preferences required' });
   }
-  const updated = updatePreferences(chatId, preferences);
+  const updated = updatePreferences(target, preferences);
   res.json({ ok: true, subscriber: updated });
 });
 

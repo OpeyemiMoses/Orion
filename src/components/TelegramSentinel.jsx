@@ -17,7 +17,10 @@ const DEFAULT_BACKEND = import.meta.env.VITE_BACKEND_URL || (typeof window !== '
 export default function TelegramSentinel({ wallet, openWalletModal }) {
   const [customBackend, setCustomBackend] = useState(() => {
     const saved = localStorage.getItem('orionx_backend_url');
-    return saved ? normalizeUrl(saved) : DEFAULT_BACKEND;
+    if (saved && (window.location.hostname === 'localhost' || saved.startsWith('https://'))) {
+      return normalizeUrl(saved);
+    }
+    return DEFAULT_BACKEND;
   });
   const [showBackendInput, setShowBackendInput] = useState(false);
   const [backendInputVal, setBackendInputVal] = useState(customBackend);
@@ -137,17 +140,21 @@ export default function TelegramSentinel({ wallet, openWalletModal }) {
     const next = { ...preferences, [key]: !preferences[key] };
     setPreferences(next);
 
-    if (wallet?.address && isBound) {
-      try {
-        await fetch(`${BACKEND_URL}/api/telegram/preferences`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            chatId: manualChatId || wallet.address,
-            preferences: next,
-          }),
-        });
-      } catch { /* ignore */ }
+    const currentAddr = wallet?.address?.toLowerCase()?.trim();
+    const chatId = boundSubscriber?.chatId || manualChatId;
+
+    try {
+      await fetch(`${BACKEND_URL}/api/telegram/preferences`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          chatId,
+          walletAddress: currentAddr,
+          preferences: next,
+        }),
+      });
+    } catch (err) {
+      console.warn('Failed to persist preferences:', err);
     }
   };
 

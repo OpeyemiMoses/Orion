@@ -81,14 +81,29 @@ export function unbindWallet(chatId) {
   return false;
 }
 
-export function updatePreferences(chatId, newPrefs) {
-  if (subscribers[chatId]) {
-    subscribers[chatId].preferences = {
-      ...subscribers[chatId].preferences,
+export function updatePreferences(chatIdOrWallet, newPrefs) {
+  if (!chatIdOrWallet || !newPrefs) return null;
+  const target = String(chatIdOrWallet).toLowerCase().trim();
+
+  let targetChatId = null;
+  if (subscribers[target]) {
+    targetChatId = target;
+  } else {
+    for (const [cId, sub] of Object.entries(subscribers)) {
+      if (sub.walletAddress && sub.walletAddress.toLowerCase().trim() === target) {
+        targetChatId = cId;
+        break;
+      }
+    }
+  }
+
+  if (targetChatId && subscribers[targetChatId]) {
+    subscribers[targetChatId].preferences = {
+      ...subscribers[targetChatId].preferences,
       ...newPrefs,
     };
     saveSubscribers(subscribers);
-    return subscribers[chatId];
+    return subscribers[targetChatId];
   }
   return null;
 }
@@ -227,6 +242,34 @@ export async function handleTelegramUpdate(update) {
         '🔗 <b>Connect Your Base Wallet</b>\n\nPlease reply with your Base wallet address (e.g. <code>0x1234567890abcdef1234567890abcdef12345678</code>).'
       );
     } else if (data === 'cmd_settings') {
+      await handleSettingsCommand(chatId);
+    } else if (data === 'toggle_pref_liquidation') {
+      const sub = subscribers[chatId];
+      if (sub) {
+        const cur = sub.preferences?.liquidationAlerts !== false;
+        updatePreferences(chatId, { liquidationAlerts: !cur });
+      }
+      await handleSettingsCommand(chatId);
+    } else if (data === 'toggle_pref_yield') {
+      const sub = subscribers[chatId];
+      if (sub) {
+        const cur = sub.preferences?.yieldAlerts !== false;
+        updatePreferences(chatId, { yieldAlerts: !cur });
+      }
+      await handleSettingsCommand(chatId);
+    } else if (data === 'toggle_pref_incentive') {
+      const sub = subscribers[chatId];
+      if (sub) {
+        const cur = sub.preferences?.incentiveAlerts !== false;
+        updatePreferences(chatId, { incentiveAlerts: !cur });
+      }
+      await handleSettingsCommand(chatId);
+    } else if (data === 'toggle_pref_security') {
+      const sub = subscribers[chatId];
+      if (sub) {
+        const cur = sub.preferences?.securityAlerts !== false;
+        updatePreferences(chatId, { securityAlerts: !cur });
+      }
       await handleSettingsCommand(chatId);
     } else if (data.startsWith('action_bind_')) {
       const addr = data.replace('action_bind_', '');
@@ -674,16 +717,31 @@ async function handleSettingsCommand(chatId) {
 <b>Telegram Chat ID:</b> <code>${chatId}</code>
 <b>Bound Wallet:</b> ${sub ? `<code>${sub.walletAddress}</code>` : '<i>None (use /bind)</i>'}
 
-<b>Active Push Notification Toggles:</b>
-• Liquidation Shield Alerts: ${prefs.liquidationAlerts ? '🟢 ENABLED' : '🔴 DISABLED'} (Trigger &lt; ${prefs.healthThreshold} HF)
-• High-Yield Reallocation Alerts: ${prefs.yieldAlerts ? '🟢 ENABLED' : '🔴 DISABLED'} (Trigger &gt; 3% gain)
-• Incentive Qualification Alerts: ${prefs.incentiveAlerts ? '🟢 ENABLED' : '🔴 DISABLED'}
-• Smart Contract Security Alerts: ${prefs.securityAlerts ? '🟢 ENABLED' : '🔴 DISABLED'}
+<b>Push Notification Status:</b>
+• <b>Liquidation Shield:</b> ${prefs.liquidationAlerts !== false ? '🟢 ENABLED' : '🔴 DISABLED'} (Trigger &lt; ${prefs.healthThreshold || 1.5} HF)
+• <b>Yield Rebalancing:</b> ${prefs.yieldAlerts !== false ? '🟢 ENABLED' : '🔴 DISABLED'} (Trigger &gt; 3% gain)
+• <b>Incentive Milestones:</b> ${prefs.incentiveAlerts !== false ? '🟢 ENABLED' : '🔴 DISABLED'}
+• <b>Security & Approvals:</b> ${prefs.securityAlerts !== false ? '🟢 ENABLED' : '🔴 DISABLED'}
 
-To change settings, visit the <b>Telegram Sentinel</b> tab in the OrionX web application.
+<i>Tap any toggle button below to enable or disable specific push alerts instantly:</i>
   `.trim();
 
-  await sendTelegramMessage(chatId, settingsMsg, getMainMenuKeyboard());
+  const keyboard = [
+    [
+      { text: `${prefs.liquidationAlerts !== false ? '🟢' : '🔴'} Liquidation`, callback_data: 'toggle_pref_liquidation' },
+      { text: `${prefs.yieldAlerts !== false ? '🟢' : '🔴'} Yields`, callback_data: 'toggle_pref_yield' },
+    ],
+    [
+      { text: `${prefs.incentiveAlerts !== false ? '🟢' : '🔴'} Incentives`, callback_data: 'toggle_pref_incentive' },
+      { text: `${prefs.securityAlerts !== false ? '🟢' : '🔴'} Security`, callback_data: 'toggle_pref_security' },
+    ],
+    [
+      { text: '🛡️ Open OrionX Web App', url: LIVE_APP_URL },
+      { text: '📊 Live Status', callback_data: 'cmd_status' },
+    ],
+  ];
+
+  await sendTelegramMessage(chatId, settingsMsg, keyboard);
 }
 
 // ── Long-Polling Telegram Runner for Development / Server ─────────────────────
