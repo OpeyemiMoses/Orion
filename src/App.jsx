@@ -6,25 +6,39 @@ import Documentation from './components/Documentation';
 import HelpCenter from './components/HelpCenter';
 import { useAccount, useDisconnect } from 'wagmi';
 import { useConnectModal, useAccountModal } from '@rainbow-me/rainbowkit';
-import { getDemoWallet } from './services/web3Wallet';
+import { getDemoWallet, fetchLiveWalletData } from './services/web3Wallet';
 
 export default function App() {
   const [currentView, setCurrentView] = useState('landing'); // 'landing' | 'dashboard' | 'docs' | 'help'
   const [activeTab, setActiveTab] = useState('liquidation'); // 'shield' | 'liquidation' | 'yield' | 'incentive' | 'protocol' | 'telegram' | 'settings'
   const [demoWallet, setDemoWallet] = useState(null);
+  const [liveWalletData, setLiveWalletData] = useState(null);
 
   const { address, isConnected, chain, connector } = useAccount();
   const { disconnect } = useDisconnect();
   const { openConnectModal } = useConnectModal();
   const { openAccountModal } = useAccountModal();
 
-  // Load demo wallet if selected
+  // Load demo wallet if stored
   useEffect(() => {
     const savedType = localStorage.getItem('orion_wallet_type');
     if (savedType === 'demo') {
       setDemoWallet(getDemoWallet());
     }
   }, []);
+
+  // Fetch real on-chain wallet data as soon as wallet connects via Wagmi / RainbowKit
+  useEffect(() => {
+    if (isConnected && address) {
+      fetchLiveWalletData(address, connector?.name || 'Web3 Wallet')
+        .then(data => {
+          if (data) setLiveWalletData(data);
+        })
+        .catch(console.error);
+    } else {
+      setLiveWalletData(null);
+    }
+  }, [isConnected, address, connector]);
 
   // Sync active wallet (Wagmi Live Web3 takes priority, then Demo wallet)
   const activeWallet = isConnected && address
@@ -35,6 +49,7 @@ export default function App() {
         isLiveWeb3: true,
         providerName: connector?.name || 'Web3 Wallet',
         status: 'connected',
+        ...(liveWalletData || {}),
       }
     : demoWallet;
 

@@ -270,6 +270,13 @@ export async function connectWeb3Wallet(targetWalletName = 'MetaMask') {
   }
 
   // 3. Fetch real on-chain data in parallel via Base RPC
+  return fetchLiveWalletData(address, match.name);
+}
+
+// ── Fetch real live on-chain wallet data by address ─────────────────────────
+export async function fetchLiveWalletData(address, walletName = 'Web3 Wallet') {
+  if (!address) return null;
+
   const [ethBalance, usdcBalance, approvals] = await Promise.all([
     getEthBalance(address).catch(() => '0.0000'),
     getErc20Balance(BASE_TOKENS[0].address, address, 6).catch(() => '0.00'), // USDC
@@ -280,7 +287,7 @@ export async function connectWeb3Wallet(targetWalletName = 'MetaMask') {
 
   return {
     address,
-    walletName: match.name,
+    walletName,
     network:    'Base Mainnet',
     chainId:    8453,
     isLiveWeb3: true,

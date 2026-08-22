@@ -114,37 +114,39 @@ export default function PortfolioShield({ wallet, openWalletModal }) {
 
     setSimLog([
       'Initiating zero-allowance revocation on Base Mainnet (Chain ID 8453)...',
-      `Target Token: ${app.tokenAddress || '0x833589fcd6edb6e08f4c7c32d4f71b54bda02913'}`,
+      `Target Token: ${app.tokenAddress || '0x833589fcd6edb6e08f4c7c32d4f71b54bda02913'} (${app.token || 'USDC'})`,
       `Target Spender: ${app.spender}`,
-      'Requesting transaction approval from your Web3 wallet...'
+      '⚡ Please confirm the approve(spender, 0) transaction in your connected wallet...'
     ]);
     setSimDone(false);
     setTxResult(null);
     setTxError(null);
 
     try {
-      if (window.ethereum && (wallet.isLiveWeb3 || window.ethereum.selectedAddress)) {
+      if (wallet.isLiveWeb3 || window.ethereum) {
         const tokenAddr = app.tokenAddress || '0x833589fcd6edb6e08f4c7c32d4f71b54bda02913';
-        const userAddr = wallet.address || window.ethereum.selectedAddress;
+        const userAddr = wallet.address || window.ethereum?.selectedAddress;
+        
         const res = await sendRevokeTransaction(tokenAddr, app.spender, userAddr);
         setTxResult(res);
         setSimLog(prev => [
           ...prev,
-          `✓ Transaction successfully broadcast to Base Mainnet!`,
-          `✓ BaseScan Tx Hash: ${res.txHash}`,
-          `✓ Token allowance set to 0. Spender permission revoked.`
+          `✓ Transaction successfully confirmed on Base Mainnet!`,
+          `✓ BaseScan Tx: ${res.txHash}`,
+          `✓ Token allowance set to 0. Spender permission revoked permanently.`
         ]);
       } else {
         setSimLog(prev => [
           ...prev,
-          '✓ Simulated zero-allowance revocation executed on Base Mainnet parameters.'
+          '✓ Simulated zero-allowance revocation executed on Base Mainnet demo mode (Connect live wallet to broadcast on-chain).'
         ]);
       }
       setApprovals(prev => prev.filter(a => a.id !== app.id));
       setSimDone(true);
     } catch (err) {
-      setTxError(err.message || 'Transaction rejected by user or RPC error');
-      setSimLog(prev => [...prev, `✗ Execution failed: ${err.message || 'Transaction rejected'}`]);
+      const errMsg = err?.shortMessage || err?.message || 'Transaction rejected by user or RPC error';
+      setTxError(errMsg);
+      setSimLog(prev => [...prev, `✗ Execution failed: ${errMsg}`]);
       setSimDone(true);
     }
   };
@@ -160,37 +162,38 @@ export default function PortfolioShield({ wallet, openWalletModal }) {
     setTxResult(null);
     setTxError(null);
     setSimLog([
-      `Initializing ${type === 'revoke' ? 'mass revocation' : 'stablecoin flight'} pipeline...`,
+      `Initializing ${type === 'revoke' ? 'mass revocation' : 'emergency defense'} pipeline...`,
       'Connecting to Base Mainnet (Chain ID 8453)...',
-      'Formatting zero-allowance parameters...',
-      'Requesting wallet signature for emergency security execution...'
+      'Formatting zero-allowance approve(spender, 0) parameter payload...',
+      '⚡ Please confirm the transaction in your connected wallet...'
     ]);
 
     try {
-      if (window.ethereum && (wallet.isLiveWeb3 || window.ethereum.selectedAddress) && approvals.length > 0) {
+      if ((wallet.isLiveWeb3 || window.ethereum) && approvals.length > 0) {
         const target = approvals.find(a => a.risk === 'Critical' || a.risk === 'High') || approvals[0];
         const tokenAddr = target.tokenAddress || '0x833589fcd6edb6e08f4c7c32d4f71b54bda02913';
-        const userAddr = wallet.address || window.ethereum.selectedAddress;
+        const userAddr = wallet.address || window.ethereum?.selectedAddress;
         const res = await sendRevokeTransaction(tokenAddr, target.spender, userAddr);
         setTxResult(res);
         setSimLog(prev => [
           ...prev,
-          `✓ Transaction broadcast on Base Mainnet!`,
-          `✓ BaseScan Tx Hash: ${res.txHash}`,
-          `✓ Emergency permissions revoked on-chain.`
+          `✓ Transaction confirmed on Base Mainnet!`,
+          `✓ BaseScan Tx: ${res.txHash}`,
+          `✓ High-risk permissions revoked on-chain.`
         ]);
         setApprovals(prev => prev.filter(a => a.risk !== 'Critical' && a.risk !== 'High'));
       } else {
         setSimLog(prev => [
           ...prev,
-          '✓ Security protection executed on Base Mainnet parameters.'
+          '✓ Security protection executed on Base Mainnet demo parameters (Connect live wallet for real on-chain broadcasting).'
         ]);
         setApprovals(prev => prev.filter(a => a.risk !== 'Critical' && a.risk !== 'High'));
       }
       setSimDone(true);
     } catch (err) {
-      setTxError(err.message || 'Transaction rejected');
-      setSimLog(prev => [...prev, `✗ Error: ${err.message || 'Transaction rejected'}`]);
+      const errMsg = err?.shortMessage || err?.message || 'Transaction rejected';
+      setTxError(errMsg);
+      setSimLog(prev => [...prev, `✗ Error: ${errMsg}`]);
       setSimDone(true);
     }
   };
