@@ -125,11 +125,11 @@ export const KNOWN_BASE_PROTOCOLS = {
     adminMsig: true, launched: '2024-01',
     defaultTvl: '$250M',
   },
-  '0x4ed4e862860be51a757049637992864ba79accd0': {
-    name: 'Degen (DEGEN)', protocol: 'Degen Ecosystem', type: 'Community & Gas Token',
+  '0x4ed4e862860bed51a9570b96d89af5e1b0efefed': {
+    name: 'Degen (DEGEN)', protocol: 'Degen', type: 'ERC-20 Token',
     defillamaSlug: 'degen', audited: true,
-    auditFirms: ['OpenZeppelin standard'],
-    description: 'Community reward and ecosystem utility token created for Farcaster users on Base.',
+    auditFirms: ['OpenZeppelin Standard'],
+    description: 'DEGEN is the native ERC-20 community and tipping token originally launched on Base, with deep liquidity across Base DEXes.',
     adminMsig: true, launched: '2024-01',
     defaultTvl: '$45M',
   },

@@ -85,7 +85,7 @@ const FEATURED_PROTOCOLS = [
   '0x833589fcd6edb6e08f4c7c32d4f71b54bda02913', // USD Coin (USDC)
   '0x940181a94a35a4569e4529a3cdfb74e38fd98631', // Aerodrome Token (AERO)
   '0x0b3e328455c4059eeb9e3f84b5543f74e24e7e1b', // Virtual Protocol (VIRTUAL)
-  '0x4ed4e862860be51a757049637992864ba79accd0', // Degen (DEGEN)
+  '0x4ed4e862860bed51a9570b96d89af5e1b0efefed', // Degen (DEGEN)
 ];
 
 export default function ProtocolAuditor() {
