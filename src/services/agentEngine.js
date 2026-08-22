@@ -407,7 +407,7 @@ export async function fetchBaseYields() {
 // ── Main scan: lending positions across ALL protocols ─────────────────────────
 export async function scanLendingPositions(wallet) {
   if (!wallet?.address) {
-    return { positions: DEMO_POSITIONS, healthFactor: 2.1, isDemo: true };
+    return { positions: [], healthFactor: null, isDemo: false };
   }
 
   const [moonwell, compoundIII, aave, seamless] = await Promise.allSettled([
@@ -440,8 +440,3 @@ export async function scanIncentives(wallet, lendingPositions = []) {
   const programs = buildIncentivePrograms(onChain, lendingPositions);
   return { programs, onChain };
 }
-
-const DEMO_POSITIONS = [
-  { protocol: 'Moonwell', market: 'mUSDC', asset: 'USDC', supplyAmt: 8000, supplyUSD: 8000, borrowAmt: 3200, borrowUSD: 3200, ltv: 0.82 },
-  { protocol: 'Moonwell', market: 'mETH',  asset: 'WETH', supplyAmt: 1.2,  supplyUSD: 3360, borrowAmt: 0,    borrowUSD: 0,    ltv: 0.8 },
-];

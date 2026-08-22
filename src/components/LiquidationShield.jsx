@@ -125,12 +125,9 @@ export default function LiquidationShield({ wallet, openWalletModal }) {
       {!wallet && (
         <div className="card" style={{ padding: '20px 24px', marginBottom: '20px', maxWidth: '480px' }}>
           <p style={{ fontSize: '13px', color: 'var(--text-muted)', lineHeight: 1.6, marginBottom: '12px' }}>
-            Connect a wallet to read your live lending positions across all Base protocols.
+            Connect your Web3 wallet via RainbowKit to read your live lending positions across Moonwell, Compound III, Aave V3, and Seamless on Base Mainnet.
           </p>
-          <div style={{ display: 'flex', gap: '8px' }}>
-            <button onClick={openWalletModal} className="btn btn-dark">Connect wallet</button>
-            <button onClick={scan} className="btn btn-outline" style={{ fontSize: '12px' }}>Run with demo data</button>
-          </div>
+          <button onClick={openWalletModal} className="btn btn-dark">Connect Web3 Wallet</button>
         </div>
       )}
 
@@ -142,7 +139,7 @@ export default function LiquidationShield({ wallet, openWalletModal }) {
         </button>
         {data && (
           <span style={{ fontSize: '11px', color: 'var(--text-dim)' }}>
-            {data.isDemo ? 'Showing demo data' : 'Live Base RPC'} · {positions.length} position{positions.length !== 1 ? 's' : ''} found
+            Live Base RPC · {positions.length} position{positions.length !== 1 ? 's' : ''} found
             across Moonwell, Compound III, Aave V3, Seamless
           </span>
         )}

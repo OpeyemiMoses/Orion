@@ -190,12 +190,9 @@ export default function AutonomousAgent({ wallet, openWalletModal }) {
             YOUR POSITION
           </p>
           <p style={{ fontSize: '13px', color: 'var(--text-muted)', lineHeight: 1.6, marginBottom: '14px' }}>
-            Connect a wallet and the agent reads your live lending positions, computes real health factors from Moonwell and Compound III, and compares your yield to every live Base pool on DeFi Llama — in real time.
+            Connect your Web3 wallet via RainbowKit and the agent reads your live lending positions, computes real health factors from Moonwell and Compound III, and compares your yield to every live Base pool on DeFi Llama in real time.
           </p>
-          <div style={{ display: 'flex', gap: '10px' }}>
-            <button onClick={openWalletModal} className="btn btn-dark">Connect wallet</button>
-            <button onClick={doScan} className="btn btn-outline" style={{ fontSize: '12px', color: 'var(--text-muted)' }}>Run with demo data</button>
-          </div>
+          <button onClick={openWalletModal} className="btn btn-dark">Connect Web3 Wallet</button>
         </div>
       )}
 

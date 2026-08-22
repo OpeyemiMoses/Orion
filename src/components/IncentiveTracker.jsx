@@ -116,12 +116,9 @@ export default function IncentiveTracker({ wallet, openWalletModal }) {
       {!wallet && (
         <div className="card" style={{ padding: '20px 24px', marginBottom: '20px', maxWidth: '480px' }}>
           <p style={{ fontSize: '13px', color: 'var(--text-muted)', lineHeight: 1.6, marginBottom: '12px' }}>
-            Connect a wallet to check real on-chain qualification: transaction count, AERO/WELL/USDC balances, lending positions.
+            Connect your Web3 wallet via RainbowKit to audit real on-chain eligibility: Base transaction count, AERO/WELL balances, and liquidity positions.
           </p>
-          <div style={{ display: 'flex', gap: '8px' }}>
-            <button onClick={openWalletModal} className="btn btn-dark">Connect wallet</button>
-            <button onClick={scan} className="btn btn-outline" style={{ fontSize: '12px' }}>Check with demo wallet</button>
-          </div>
+          <button onClick={openWalletModal} className="btn btn-dark">Connect Web3 Wallet</button>
         </div>
       )}
 
@@ -132,11 +129,11 @@ export default function IncentiveTracker({ wallet, openWalletModal }) {
         </button>
         {data && (
           <span style={{ fontSize: '11px', color: 'var(--text-dim)' }}>
-            {wallet?.address ? 'Live on-chain reads' : 'Demo wallet'} ·
-            {' '}tx count: {onChain.txCount ?? '?'} ·
-            {' '}AERO: {onChain.aeroBalance != null ? onChain.aeroBalance.toFixed(2) : '?'} ·
-            {' '}veAERO: {onChain.veAeroBalance != null ? onChain.veAeroBalance.toFixed(2) : '?'} ·
-            {' '}USDC: ${onChain.usdcBalance != null ? onChain.usdcBalance.toFixed(0) : '?'}
+            Live Base reads ·
+            {' '}tx count: {onChain.txCount ?? 0} ·
+            {' '}AERO: {onChain.aeroBalance != null ? onChain.aeroBalance.toFixed(2) : '0.00'} ·
+            {' '}veAERO: {onChain.veAeroBalance != null ? onChain.veAeroBalance.toFixed(2) : '0.00'} ·
+            {' '}USDC: ${onChain.usdcBalance != null ? onChain.usdcBalance.toFixed(0) : '0.00'}
           </span>
         )}
       </div>
