@@ -502,8 +502,8 @@ html, body, #root {
   .responsive-two-col {
     grid-template-columns: 1fr !important;
   }
-  .responsive-health-grid {
-    grid-template-columns: 1fr !important;
+  .mobile-in-app-bar {
+    display: none;
   }
 }
 
@@ -514,39 +514,64 @@ html, body, #root {
     max-width: 100vw;
     overflow-x: hidden;
   }
-  .sidebar {
-    width: 100%;
-    min-width: 0;
-    height: auto;
+
+  .desktop-sidebar {
+    display: none !important;
+  }
+
+  .desktop-breadcrumb-bar {
+    display: none !important;
+  }
+
+  .mobile-in-app-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 12px;
+    background: var(--bg-card);
+    border-bottom: 1px solid var(--border);
     position: sticky;
     top: 48px;
     z-index: 50;
-    flex-direction: row;
+    backdrop-filter: blur(8px);
+  }
+
+  .mobile-active-module-pill {
     display: flex;
-    overflow-x: auto;
-    border-right: none;
-    border-bottom: 1px solid var(--border);
-    padding: 6px 8px;
-    gap: 4px;
-    background: var(--bg-card);
-    -webkit-overflow-scrolling: touch;
-  }
-  .sidebar::-webkit-scrollbar { display: none; }
-  .sidebar-section-label { display: none; }
-  .sidebar-link {
-    width: auto;
-    white-space: nowrap;
-    padding: 6px 12px;
-    border-radius: var(--radius-md);
+    align-items: center;
+    gap: 8px;
+    padding: 5px 10px;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    color: var(--text-main);
     font-size: 12px;
-    flex-shrink: 0;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.15s ease;
   }
-  .sidebar-link.active {
-    background: var(--accent-dark);
-    color: #fff;
+
+  .mobile-active-module-pill:active {
+    background: var(--bg);
+    transform: scale(0.97);
   }
-  .sidebar-link.active svg {
-    color: #fff;
+
+  .pill-icon-wrapper {
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    background: var(--text-main);
+    color: var(--bg);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .pill-title {
+    max-width: 170px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
 
   .main-content {
@@ -632,5 +657,16 @@ html, body, #root {
   }
   to {
     opacity: 1;
+  }
+}
+
+@keyframes slideInLeft {
+  from {
+    opacity: 0;
+    transform: translateX(-100%);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
   }
 }
