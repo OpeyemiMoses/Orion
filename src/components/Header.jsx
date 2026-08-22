@@ -19,6 +19,7 @@ import {
   ChevronDown,
   Settings as SettingsIcon
 } from 'lucide-react';
+import { ConnectButton } from '@rainbow-me/rainbowkit';
 import { truncateAddress } from '../services/web3Wallet';
 
 const MODULES = [
@@ -199,29 +200,84 @@ export default function Header({ currentView, setCurrentView, activeTab, setActi
             </svg>
           </a>
 
-          {wallet ? (
-            <button
-              onClick={openWalletModal}
-              className="btn btn-outline header-wallet-btn"
-              style={{ gap: '4px', padding: '4px 8px' }}
-            >
-              <span style={{
-                width: '6px', height: '6px', borderRadius: '50%',
-                background: '#16a34a', flexShrink: 0
-              }} />
-              <span style={{ fontFamily: 'var(--font-mono)', fontSize: '11px' }}>
-                {truncateAddress(wallet.address)}
-              </span>
-            </button>
-          ) : (
-            <button 
-              onClick={openWalletModal} 
-              className="btn btn-dark header-wallet-btn" 
-              style={{ padding: '5px 10px', fontSize: '11px' }}
-            >
-              Connect
-            </button>
-          )}
+          {/* RainbowKit Connect Button */}
+          <ConnectButton.Custom>
+            {({
+              account,
+              chain,
+              openAccountModal,
+              openChainModal,
+              openConnectModal,
+              authenticationStatus,
+              mounted,
+            }) => {
+              const ready = mounted && authenticationStatus !== 'loading';
+              const connected =
+                ready &&
+                account &&
+                chain &&
+                (!authenticationStatus || authenticationStatus === 'authenticated');
+
+              return (
+                <div
+                  {...(!ready && {
+                    'aria-hidden': true,
+                    'style': {
+                      opacity: 0,
+                      pointerEvents: 'none',
+                      userSelect: 'none',
+                    },
+                  })}
+                >
+                  {(() => {
+                    if (!connected) {
+                      return (
+                        <button
+                          onClick={openConnectModal}
+                          type="button"
+                          className="btn btn-dark header-wallet-btn"
+                          style={{ padding: '5px 10px', fontSize: '11px' }}
+                        >
+                          Connect
+                        </button>
+                      );
+                    }
+
+                    if (chain.unsupported) {
+                      return (
+                        <button
+                          onClick={openChainModal}
+                          type="button"
+                          className="btn btn-danger header-wallet-btn"
+                          style={{ padding: '4px 8px', fontSize: '11px', background: '#dc2626', color: '#fff' }}
+                        >
+                          Wrong network
+                        </button>
+                      );
+                    }
+
+                    return (
+                      <button
+                        onClick={openAccountModal}
+                        type="button"
+                        className="btn btn-outline header-wallet-btn"
+                        style={{ gap: '4px', padding: '4px 8px' }}
+                        title="Wallet Connected • Tap to manage"
+                      >
+                        <span style={{
+                          width: '6px', height: '6px', borderRadius: '50%',
+                          background: '#16a34a', flexShrink: 0
+                        }} />
+                        <span style={{ fontFamily: 'var(--font-mono)', fontSize: '11px' }}>
+                          {account.displayName}
+                        </span>
+                      </button>
+                    );
+                  })()}
+                </div>
+              );
+            }}
+          </ConnectButton.Custom>
 
           {/* Mobile Hamburger Toggle Button */}
           <button

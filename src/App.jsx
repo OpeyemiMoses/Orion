@@ -1,75 +1,54 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect } from 'react';
 import Header from './components/Header';
 import LandingPage from './components/LandingPage';
 import Dashboard from './components/Dashboard';
 import Documentation from './components/Documentation';
 import HelpCenter from './components/HelpCenter';
-import WalletConnectModal from './components/WalletConnectModal';
-import { connectWeb3Wallet, getDemoWallet } from './services/web3Wallet';
+import { useAccount, useDisconnect } from 'wagmi';
+import { useConnectModal, useAccountModal } from '@rainbow-me/rainbowkit';
+import { getDemoWallet } from './services/web3Wallet';
 
 export default function App() {
   const [currentView, setCurrentView] = useState('landing'); // 'landing' | 'dashboard' | 'docs' | 'help'
   const [activeTab, setActiveTab] = useState('liquidation'); // 'shield' | 'liquidation' | 'yield' | 'incentive' | 'protocol' | 'telegram' | 'settings'
-  const [wallet, setWallet] = useState(null);
-  const [isWalletModalOpen, setIsWalletModalOpen] = useState(false);
+  const [demoWallet, setDemoWallet] = useState(null);
 
-  // ── Auto-reconnect wallet from localStorage on mount ────────────────────────
+  const { address, isConnected, chain, connector } = useAccount();
+  const { disconnect } = useDisconnect();
+  const { openConnectModal } = useConnectModal();
+  const { openAccountModal } = useAccountModal();
+
+  // Load demo wallet if selected
   useEffect(() => {
     const savedType = localStorage.getItem('orion_wallet_type');
-    const savedAddr = localStorage.getItem('orion_wallet_address');
-
-    if (savedType === 'live' && window.ethereum) {
-      window.ethereum.request({ method: 'eth_accounts' })
-        .then(accounts => {
-          if (accounts && accounts.length > 0) {
-            connectWeb3Wallet().then(w => {
-              if (w) setWallet(w);
-            }).catch(console.error);
-          }
-        })
-        .catch(console.error);
-    } else if (savedType === 'demo') {
-      setWallet(getDemoWallet());
+    if (savedType === 'demo') {
+      setDemoWallet(getDemoWallet());
     }
   }, []);
 
-  // ── Listen to Web3 provider events (account change, chain change) ───────────
-  useEffect(() => {
-    if (!window.ethereum) return;
-
-    const handleAccountsChanged = (accounts) => {
-      if (!accounts || accounts.length === 0) {
-        setWallet(null);
-        localStorage.removeItem('orion_wallet_type');
-        localStorage.removeItem('orion_wallet_address');
-      } else {
-        connectWeb3Wallet().then(w => {
-          if (w) setWallet(w);
-        });
+  // Sync active wallet (Wagmi Live Web3 takes priority, then Demo wallet)
+  const activeWallet = isConnected && address
+    ? {
+        address,
+        chainId: chain?.id || 8453,
+        chainName: chain?.name || 'Base',
+        isLiveWeb3: true,
+        providerName: connector?.name || 'Web3 Wallet',
+        status: 'connected',
       }
-    };
+    : demoWallet;
 
-    const handleChainChanged = () => {
-      window.location.reload();
-    };
-
-    window.ethereum.on?.('accountsChanged', handleAccountsChanged);
-    window.ethereum.on?.('chainChanged', handleChainChanged);
-
-    return () => {
-      window.ethereum.removeListener?.('accountsChanged', handleAccountsChanged);
-      window.ethereum.removeListener?.('chainChanged', handleChainChanged);
-    };
-  }, []);
-
-  const handleSetWallet = (newWallet) => {
-    setWallet(newWallet);
-    if (newWallet) {
-      localStorage.setItem('orion_wallet_type', newWallet.isLiveWeb3 ? 'live' : 'demo');
-      localStorage.setItem('orion_wallet_address', newWallet.address || '');
+  const handleOpenWalletModal = () => {
+    if (isConnected) {
+      if (openAccountModal) {
+        openAccountModal();
+      } else if (openConnectModal) {
+        openConnectModal();
+      }
     } else {
-      localStorage.removeItem('orion_wallet_type');
-      localStorage.removeItem('orion_wallet_address');
+      if (openConnectModal) {
+        openConnectModal();
+      }
     }
   };
 
@@ -92,8 +71,8 @@ export default function App() {
         setCurrentView={setCurrentView}
         activeTab={activeTab}
         setActiveTab={setActiveTab}
-        wallet={wallet}
-        openWalletModal={() => setIsWalletModalOpen(true)}
+        wallet={activeWallet}
+        openWalletModal={handleOpenWalletModal}
       />
 
       {/* Main View Router */}
@@ -101,14 +80,14 @@ export default function App() {
         {currentView === 'landing' && (
           <LandingPage
             onLaunchApp={handleLaunchApp}
-            openWalletModal={() => setIsWalletModalOpen(true)}
+            openWalletModal={handleOpenWalletModal}
             setCurrentView={setCurrentView}
           />
         )}
         {currentView === 'dashboard' && (
           <Dashboard
-            wallet={wallet}
-            openWalletModal={() => setIsWalletModalOpen(true)}
+            wallet={activeWallet}
+            openWalletModal={handleOpenWalletModal}
             setCurrentView={setCurrentView}
             activeTab={activeTab}
             setActiveTab={setActiveTab}
@@ -126,40 +105,61 @@ export default function App() {
         )}
       </main>
 
-      {/* Web3 Wallet Connection Modal */}
-      <WalletConnectModal
-        isOpen={isWalletModalOpen}
-        onClose={() => setIsWalletModalOpen(false)}
-        wallet={wallet}
-        setWallet={handleSetWallet}
-      />
-
       {/* Footer */}
       <footer style={{
         borderTop: '1px solid var(--border-glass)',
         padding: '1.5rem',
         textAlign: 'center',
-        fontSize: '0.8rem',
         color: 'var(--text-dim)',
-        background: 'rgba(5, 7, 12, 0.95)'
+        fontSize: '12px',
+        background: 'rgba(10, 15, 29, 0.4)',
+        backdropFilter: 'blur(8px)',
+        marginTop: 'auto'
       }}>
-        <div style={{ maxWidth: '1280px', margin: '0 auto', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <img src="/logo.png" alt="OrionX" style={{ width: 18, height: 18, borderRadius: '50%', objectFit: 'cover' }} />
-            <span><strong>OrionX</strong> • Autonomous Capital Sentinel on Base</span>
-          </div>
-          <div>
-            <a
-              href="https://github.com/OpeyemiMoses/Orion"
-              target="_blank"
-              rel="noreferrer"
-              style={{ color: 'var(--text-muted)', textDecoration: 'underline' }}
-            >
-              GitHub Repository
-            </a>
-            {' • '}
-            <span>Built by <a href="https://github.com/OpeyemiMoses" target="_blank" rel="noreferrer" style={{ color: 'var(--text-muted)', textDecoration: 'underline' }}>OpeyemiMoses</a></span>
-          </div>
+        <div style={{ display: 'flex', justifyContent: 'center', gap: '1.5rem', marginBottom: '0.5rem', flexWrap: 'wrap' }}>
+          <button
+            onClick={() => setCurrentView('landing')}
+            style={{ background: 'none', border: 'none', color: 'var(--text-dim)', cursor: 'pointer', fontSize: '12px' }}
+          >
+            Overview
+          </button>
+          <button
+            onClick={() => setCurrentView('dashboard')}
+            style={{ background: 'none', border: 'none', color: 'var(--text-dim)', cursor: 'pointer', fontSize: '12px' }}
+          >
+            Shield Console
+          </button>
+          <button
+            onClick={() => setCurrentView('docs')}
+            style={{ background: 'none', border: 'none', color: 'var(--text-dim)', cursor: 'pointer', fontSize: '12px' }}
+          >
+            Documentation
+          </button>
+          <button
+            onClick={() => setCurrentView('help')}
+            style={{ background: 'none', border: 'none', color: 'var(--text-dim)', cursor: 'pointer', fontSize: '12px' }}
+          >
+            Help Centre
+          </button>
+          <a
+            href="https://t.me/OrionXSentinelBot"
+            target="_blank"
+            rel="noreferrer"
+            style={{ color: 'var(--text-dim)', textDecoration: 'none' }}
+          >
+            Telegram Bot
+          </a>
+          <a
+            href="https://github.com/OpeyemiMoses/Orion"
+            target="_blank"
+            rel="noreferrer"
+            style={{ color: 'var(--text-dim)', textDecoration: 'none' }}
+          >
+            GitHub
+          </a>
+        </div>
+        <div>
+          © 2026 OrionX. Non-custodial autonomous DeFi security sentinel on Base Mainnet.
         </div>
       </footer>
     </div>
