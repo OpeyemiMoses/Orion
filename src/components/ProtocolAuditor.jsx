@@ -80,11 +80,12 @@ function InteractionVerdict({ signal, reason, color, bg, border, text }) {
 const FEATURED_PROTOCOLS = [
   '0xcf77a3ba9a5ca399b7c97c74d54e5b1beb874e43', // Aerodrome Router
   '0xedc817a28e8b93b03976fbd4a3ddbc9f7d176c22', // Moonwell mUSDC
+  '0xa238dd80c25cedc05e0f0d090854501e78988888', // Aave V3 Base Pool
   '0x9c4ec768c28520b50860ea7a15bd7213a9ff58bf', // Compound III USDC
-  '0x8f44fd754285aa6a2b8b9ed6f8245c6371390316', // Seamless Protocol
-  '0x2626664c2601f8477d34190c138804968853b018', // Uniswap V3
-  '0x833589fcd6edb6e08f4c7c32d4f71b54bda02913', // USDC
-  '0x940181a94a35a4569e4529a3cdfb74e38fd98631', // AERO
+  '0x833589fcd6edb6e08f4c7c32d4f71b54bda02913', // USD Coin (USDC)
+  '0x940181a94a35a4569e4529a3cdfb74e38fd98631', // Aerodrome Token (AERO)
+  '0x0b3e328455c4059eeb9e3f84b5543f74e24e7e1b', // Virtual Protocol (VIRTUAL)
+  '0x4ed4e862860be51a757049637992864ba79accd0', // Degen (DEGEN)
 ];
 
 export default function ProtocolAuditor() {
@@ -259,10 +260,12 @@ export default function ProtocolAuditor() {
                   </a>
                 </div>
               </div>
-              {r.tvl && (
+              {r.tvl && r.tvl !== 'N/A' && (
                 <div style={{ textAlign: 'right' }}>
-                  <div className="stat-label">TVL (DeFi Llama)</div>
+                  <div className="stat-label">{r.dexLiquidity ? 'DEX Liquidity' : 'Protocol TVL'}</div>
                   <div className="stat-value" style={{ fontSize: '24px' }}>{r.tvl}</div>
+                  {r.marketCap && <div className="stat-sub" style={{ color: 'var(--text-dim)', fontSize: '11px' }}>MCap: {r.marketCap}</div>}
+                  {r.volume24h && <div className="stat-sub" style={{ color: 'var(--text-dim)', fontSize: '11px' }}>24h Vol: {r.volume24h}</div>}
                   {r.llamaCategory && <div className="stat-sub">{r.llamaCategory}</div>}
                 </div>
               )}
