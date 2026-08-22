@@ -9,6 +9,7 @@ import { connectWeb3Wallet, getDemoWallet } from './services/web3Wallet';
 
 export default function App() {
   const [currentView, setCurrentView] = useState('landing'); // 'landing' | 'dashboard' | 'docs' | 'help'
+  const [activeTab, setActiveTab] = useState('liquidation'); // 'shield' | 'liquidation' | 'yield' | 'incentive' | 'protocol' | 'telegram' | 'settings'
   const [wallet, setWallet] = useState(null);
   const [isWalletModalOpen, setIsWalletModalOpen] = useState(false);
 
@@ -89,6 +90,8 @@ export default function App() {
       <Header
         currentView={currentView}
         setCurrentView={setCurrentView}
+        activeTab={activeTab}
+        setActiveTab={setActiveTab}
         wallet={wallet}
         openWalletModal={() => setIsWalletModalOpen(true)}
       />
@@ -107,6 +110,8 @@ export default function App() {
             wallet={wallet}
             openWalletModal={() => setIsWalletModalOpen(true)}
             setCurrentView={setCurrentView}
+            activeTab={activeTab}
+            setActiveTab={setActiveTab}
           />
         )}
         {currentView === 'docs' && (

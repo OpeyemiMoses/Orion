@@ -1,6 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { 
   Shield, 
+  ShieldAlert,
+  TrendingUp,
+  Gift,
+  ScanSearch,
   Cpu, 
   ArrowRight, 
   Menu, 
@@ -11,11 +15,22 @@ import {
   Send, 
   Globe, 
   ExternalLink,
-  ChevronRight
+  ChevronRight,
+  ChevronDown,
+  Settings as SettingsIcon
 } from 'lucide-react';
 import { truncateAddress } from '../services/web3Wallet';
 
-export default function Header({ currentView, setCurrentView, wallet, openWalletModal }) {
+const MODULES = [
+  { id: 'shield',      label: 'Approval Shield',          icon: Shield,       group: 'agent', desc: 'Scan & revoke unverified token spenders' },
+  { id: 'liquidation', label: 'Liquidation Shield',        icon: ShieldAlert,  group: 'agent', desc: 'Real-time multi-market solvency & health factor' },
+  { id: 'yield',       label: 'Yield Optimizer',           icon: TrendingUp,   group: 'agent', desc: 'Live Base pools from DeFi Llama (> $100k TVL)' },
+  { id: 'incentive',   label: 'Incentive Tracker',         icon: Gift,         group: 'agent', desc: 'On-chain milestone & reward eligibility audit' },
+  { id: 'protocol',    label: 'Protocol & Token Auditor',   icon: ScanSearch,   group: 'tools', desc: 'Deep AI & bytecode intelligence on Base' },
+  { id: 'telegram',    label: 'Telegram Sentinel',         icon: Send,         group: 'tools', desc: '24/7 autonomous daemon & push notifications' },
+];
+
+export default function Header({ currentView, setCurrentView, activeTab, setActiveTab, wallet, openWalletModal }) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   // Close mobile menu on ESC key
@@ -44,6 +59,15 @@ export default function Header({ currentView, setCurrentView, wallet, openWallet
     setIsMobileMenuOpen(false);
   };
 
+  const handleModuleClick = (moduleId) => {
+    if (setActiveTab) setActiveTab(moduleId);
+    setCurrentView('dashboard');
+    setIsMobileMenuOpen(false);
+  };
+
+  const currentModule = MODULES.find(m => m.id === activeTab) || (activeTab === 'settings' ? { label: 'Settings', icon: SettingsIcon } : MODULES[1]);
+  const CurrentModuleIcon = currentModule?.icon || ShieldAlert;
+
   return (
     <>
       <header style={{
@@ -53,25 +77,57 @@ export default function Header({ currentView, setCurrentView, wallet, openWallet
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'space-between',
-        padding: '0 clamp(12px, 3vw, 20px)',
+        padding: '0 clamp(10px, 3vw, 20px)',
         position: 'sticky',
         top: 0,
         zIndex: 100,
-        gap: '12px'
+        gap: '8px'
       }}>
-        {/* Brand */}
-        <div
-          onClick={() => handleNavClick('landing')}
-          style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', textDecoration: 'none' }}
-        >
-          <img
-            src="/logo.png"
-            alt="OrionX"
-            style={{ width: 26, height: 26, borderRadius: '50%', objectFit: 'cover', border: '1px solid var(--border)' }}
-          />
-          <span style={{ fontWeight: 700, fontSize: '15px', letterSpacing: '-0.01em' }}>
-            OrionX
-          </span>
+        {/* Left: Brand + Latched Active Module Selector */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', minWidth: 0 }}>
+          <div
+            onClick={() => handleNavClick('landing')}
+            style={{ display: 'flex', alignItems: 'center', gap: '7px', cursor: 'pointer', textDecoration: 'none', flexShrink: 0 }}
+          >
+            <img
+              src="/logo.png"
+              alt="OrionX"
+              style={{ width: 24, height: 24, borderRadius: '50%', objectFit: 'cover', border: '1px solid var(--border)' }}
+            />
+            <span style={{ fontWeight: 700, fontSize: '15px', letterSpacing: '-0.01em' }}>
+              OrionX
+            </span>
+          </div>
+
+          {/* Latched Active Module Selector (Visible when in Console) */}
+          {currentView === 'dashboard' && (
+            <button
+              onClick={() => setIsMobileMenuOpen(true)}
+              className="header-active-module-pill"
+              title="Tap to switch modules"
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '6px',
+                padding: '4px 8px',
+                borderRadius: '16px',
+                background: 'var(--bg-secondary)',
+                border: '1px solid var(--border)',
+                color: 'var(--text-main)',
+                fontSize: '12px',
+                fontWeight: 600,
+                cursor: 'pointer',
+                transition: 'all 0.15s ease',
+                maxWidth: '180px'
+              }}
+            >
+              <CurrentModuleIcon size={13} style={{ color: 'var(--accent-blue)', flexShrink: 0 }} />
+              <span style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', fontSize: '11px' }}>
+                {currentModule?.label}
+              </span>
+              <ChevronDown size={11} style={{ color: 'var(--text-dim)', flexShrink: 0 }} />
+            </button>
+          )}
         </div>
 
         {/* Center nav links (Desktop) */}
@@ -127,7 +183,7 @@ export default function Header({ currentView, setCurrentView, wallet, openWallet
         </nav>
 
         {/* Right: Network + GitHub + Wallet + Mobile Hamburger */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexShrink: 0 }}>
           <span className="header-network-label" style={{ fontSize: '12px', color: 'var(--text-dim)' }}>Base Mainnet</span>
 
           <a
@@ -147,13 +203,13 @@ export default function Header({ currentView, setCurrentView, wallet, openWallet
             <button
               onClick={openWalletModal}
               className="btn btn-outline header-wallet-btn"
-              style={{ gap: '6px', padding: '5px 10px' }}
+              style={{ gap: '4px', padding: '4px 8px' }}
             >
               <span style={{
-                width: '7px', height: '7px', borderRadius: '50%',
+                width: '6px', height: '6px', borderRadius: '50%',
                 background: '#16a34a', flexShrink: 0
               }} />
-              <span style={{ fontFamily: 'var(--font-mono)', fontSize: '12px' }}>
+              <span style={{ fontFamily: 'var(--font-mono)', fontSize: '11px' }}>
                 {truncateAddress(wallet.address)}
               </span>
             </button>
@@ -161,9 +217,9 @@ export default function Header({ currentView, setCurrentView, wallet, openWallet
             <button 
               onClick={openWalletModal} 
               className="btn btn-dark header-wallet-btn" 
-              style={{ padding: '6px 12px', fontSize: '12px' }}
+              style={{ padding: '5px 10px', fontSize: '11px' }}
             >
-              Connect wallet
+              Connect
             </button>
           )}
 
@@ -173,7 +229,7 @@ export default function Header({ currentView, setCurrentView, wallet, openWallet
             className="btn btn-ghost header-mobile-toggle"
             aria-label="Toggle navigation menu"
             style={{
-              padding: '6px 8px',
+              padding: '5px 6px',
               color: 'var(--text-main)',
               display: 'none',
               alignItems: 'center',
@@ -181,7 +237,7 @@ export default function Header({ currentView, setCurrentView, wallet, openWallet
               borderRadius: '6px'
             }}
           >
-            {isMobileMenuOpen ? <X size={20} /> : <Menu size={20} />}
+            {isMobileMenuOpen ? <X size={18} /> : <Menu size={18} />}
           </button>
         </div>
       </header>
@@ -194,7 +250,7 @@ export default function Header({ currentView, setCurrentView, wallet, openWallet
           style={{
             position: 'fixed',
             inset: 0,
-            background: 'rgba(0, 0, 0, 0.65)',
+            background: 'rgba(0, 0, 0, 0.7)',
             backdropFilter: 'blur(6px)',
             zIndex: 998,
             animation: 'fadeIn 0.2s ease forwards'
@@ -202,151 +258,265 @@ export default function Header({ currentView, setCurrentView, wallet, openWallet
         />
       )}
 
-      {/* ── Mobile Navigation Drawer ──────────────────────────── */}
+      {/* ── Mobile Navigation Drawer (Slide in from Left/Top) ──── */}
       {isMobileMenuOpen && (
         <div
           className="mobile-menu-drawer"
           style={{
             position: 'fixed',
-            top: '48px',
+            top: 0,
+            bottom: 0,
             left: 0,
-            right: 0,
+            width: 'min(320px, 86vw)',
             background: 'var(--bg-card)',
-            borderBottom: '1px solid var(--border)',
-            padding: '20px 16px 24px 16px',
+            borderRight: '1px solid var(--border)',
             zIndex: 999,
             display: 'flex',
             flexDirection: 'column',
-            gap: '16px',
-            boxShadow: '0 20px 40px rgba(0, 0, 0, 0.4)',
-            animation: 'slideDown 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards'
+            boxShadow: '10px 0 35px rgba(0, 0, 0, 0.5)',
+            animation: 'slideInLeft 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards'
           }}
         >
-          {/* Section: Main Navigation Links */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-            <div style={{ fontSize: '10px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--text-dim)', padding: '0 8px 6px 8px' }}>
-              Navigation
+          {/* Drawer Header */}
+          <div style={{
+            padding: '14px 16px',
+            borderBottom: '1px solid var(--border)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            background: 'var(--bg-secondary)'
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <img src="/logo.png" alt="OrionX" style={{ width: 22, height: 22, borderRadius: '50%', border: '1px solid var(--border)' }} />
+              <span style={{ fontWeight: 700, fontSize: '14px' }}>OrionX Navigation</span>
+            </div>
+            <button
+              onClick={() => setIsMobileMenuOpen(false)}
+              className="btn btn-ghost"
+              style={{ padding: '4px 6px', color: 'var(--text-muted)' }}
+              aria-label="Close menu"
+            >
+              <X size={18} />
+            </button>
+          </div>
+
+          {/* Drawer Scrollable Content */}
+          <div style={{ flex: 1, overflowY: 'auto', padding: '14px 10px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
+            {/* Section: Agent Modules */}
+            <div>
+              <div style={{ fontSize: '10px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--text-dim)', padding: '0 8px 6px 8px' }}>
+                Agent Modules
+              </div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '3px' }}>
+                {MODULES.filter(m => m.group === 'agent').map(({ id, label, icon: Icon, desc }) => {
+                  const isActive = currentView === 'dashboard' && activeTab === id;
+                  return (
+                    <button
+                      key={id}
+                      onClick={() => handleModuleClick(id)}
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        padding: '10px 10px',
+                        borderRadius: '8px',
+                        background: isActive ? 'var(--bg-secondary)' : 'transparent',
+                        border: isActive ? '1px solid var(--border)' : '1px solid transparent',
+                        color: isActive ? 'var(--text-main)' : 'var(--text-muted)',
+                        cursor: 'pointer',
+                        textAlign: 'left',
+                        width: '100%',
+                        transition: 'all 0.15s ease'
+                      }}
+                    >
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                        <div style={{
+                          width: '28px',
+                          height: '28px',
+                          borderRadius: '6px',
+                          background: isActive ? 'var(--text-main)' : 'var(--bg)',
+                          color: isActive ? 'var(--bg)' : 'var(--text-dim)',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          border: '1px solid var(--border)'
+                        }}>
+                          <Icon size={14} />
+                        </div>
+                        <div>
+                          <div style={{ fontSize: '13px', fontWeight: isActive ? 700 : 500, color: 'var(--text-main)' }}>
+                            {label}
+                          </div>
+                          <div style={{ fontSize: '10px', color: 'var(--text-dim)', marginTop: '1px' }}>
+                            {desc}
+                          </div>
+                        </div>
+                      </div>
+                      {isActive && <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: 'var(--accent-blue)' }} />}
+                    </button>
+                  );
+                })}
+              </div>
             </div>
 
-            {[
-              { id: 'landing', label: 'Overview', icon: Globe, desc: 'Landing Page & Ecosystem Features' },
-              { id: 'dashboard', label: 'Shield Console', icon: LayoutDashboard, desc: 'Autonomous Defense & Agent Modules' },
-              { id: 'docs', label: 'Documentation', icon: BookOpen, desc: 'Technical Architecture & API Reference' },
-              { id: 'help', label: 'Help Centre', icon: HelpCircle, desc: 'Step-by-Step Guides & FAQs' },
-            ].map(item => {
-              const Icon = item.icon;
-              const isActive = currentView === item.id;
-              return (
+            {/* Section: Tools */}
+            <div style={{ borderTop: '1px solid var(--border)', paddingTop: '12px' }}>
+              <div style={{ fontSize: '10px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--text-dim)', padding: '0 8px 6px 8px' }}>
+                Tools & Telemetry
+              </div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '3px' }}>
+                {MODULES.filter(m => m.group === 'tools').map(({ id, label, icon: Icon, desc }) => {
+                  const isActive = currentView === 'dashboard' && activeTab === id;
+                  return (
+                    <button
+                      key={id}
+                      onClick={() => handleModuleClick(id)}
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        padding: '10px 10px',
+                        borderRadius: '8px',
+                        background: isActive ? 'var(--bg-secondary)' : 'transparent',
+                        border: isActive ? '1px solid var(--border)' : '1px solid transparent',
+                        color: isActive ? 'var(--text-main)' : 'var(--text-muted)',
+                        cursor: 'pointer',
+                        textAlign: 'left',
+                        width: '100%',
+                        transition: 'all 0.15s ease'
+                      }}
+                    >
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                        <div style={{
+                          width: '28px',
+                          height: '28px',
+                          borderRadius: '6px',
+                          background: isActive ? 'var(--text-main)' : 'var(--bg)',
+                          color: isActive ? 'var(--bg)' : 'var(--text-dim)',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          border: '1px solid var(--border)'
+                        }}>
+                          <Icon size={14} />
+                        </div>
+                        <div>
+                          <div style={{ fontSize: '13px', fontWeight: isActive ? 700 : 500, color: 'var(--text-main)' }}>
+                            {label}
+                          </div>
+                          <div style={{ fontSize: '10px', color: 'var(--text-dim)', marginTop: '1px' }}>
+                            {desc}
+                          </div>
+                        </div>
+                      </div>
+                      {isActive && <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: 'var(--accent-blue)' }} />}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Section: Global Pages */}
+            <div style={{ borderTop: '1px solid var(--border)', paddingTop: '12px' }}>
+              <div style={{ fontSize: '10px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--text-dim)', padding: '0 8px 6px 8px' }}>
+                Global Views & Support
+              </div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '3px' }}>
                 <button
-                  key={item.id}
-                  onClick={() => handleNavClick(item.id)}
+                  onClick={() => handleNavClick('landing')}
                   style={{
                     display: 'flex',
                     alignItems: 'center',
-                    justifyContent: 'space-between',
-                    padding: '12px',
-                    borderRadius: '8px',
-                    background: isActive ? 'var(--bg-secondary)' : 'transparent',
-                    border: isActive ? '1px solid var(--border)' : '1px solid transparent',
-                    color: isActive ? 'var(--text-main)' : 'var(--text-muted)',
-                    textAlign: 'left',
+                    gap: '10px',
+                    padding: '8px 10px',
+                    borderRadius: '6px',
+                    background: currentView === 'landing' ? 'var(--bg-secondary)' : 'transparent',
+                    border: currentView === 'landing' ? '1px solid var(--border)' : '1px solid transparent',
+                    color: currentView === 'landing' ? 'var(--text-main)' : 'var(--text-muted)',
                     cursor: 'pointer',
-                    width: '100%',
-                    transition: 'all 0.15s ease'
+                    fontSize: '13px',
+                    width: '100%'
                   }}
                 >
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                    <div style={{
-                      width: '32px',
-                      height: '32px',
-                      borderRadius: '6px',
-                      background: isActive ? 'var(--text-main)' : 'var(--bg)',
-                      color: isActive ? 'var(--bg)' : 'var(--text-dim)',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      border: '1px solid var(--border)'
-                    }}>
-                      <Icon size={16} />
-                    </div>
-                    <div>
-                      <div style={{ fontSize: '14px', fontWeight: isActive ? 700 : 500, color: 'var(--text-main)' }}>
-                        {item.label}
-                      </div>
-                      <div style={{ fontSize: '11px', color: 'var(--text-dim)', marginTop: '2px' }}>
-                        {item.desc}
-                      </div>
-                    </div>
-                  </div>
-                  <ChevronRight size={14} style={{ color: 'var(--text-dim)' }} />
+                  <Globe size={14} style={{ color: 'var(--text-dim)' }} /> Overview (Home)
                 </button>
-              );
-            })}
-          </div>
-
-          {/* Section: Mobile Wallet & Telemetry */}
-          <div style={{ borderTop: '1px solid var(--border)', paddingTop: '16px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
-            <div style={{ fontSize: '10px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--text-dim)', padding: '0 8px' }}>
-              Account & Network
-            </div>
-
-            {wallet ? (
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 12px', background: 'var(--bg)', border: '1px solid var(--border)', borderRadius: '8px' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#16a34a' }} />
-                  <span style={{ fontFamily: 'var(--font-mono)', fontSize: '13px', fontWeight: 600 }}>
-                    {truncateAddress(wallet.address)}
-                  </span>
-                </div>
                 <button
-                  onClick={() => {
-                    setIsMobileMenuOpen(false);
-                    openWalletModal();
+                  onClick={() => handleNavClick('docs')}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '10px',
+                    padding: '8px 10px',
+                    borderRadius: '6px',
+                    background: currentView === 'docs' ? 'var(--bg-secondary)' : 'transparent',
+                    border: currentView === 'docs' ? '1px solid var(--border)' : '1px solid transparent',
+                    color: currentView === 'docs' ? 'var(--text-main)' : 'var(--text-muted)',
+                    cursor: 'pointer',
+                    fontSize: '13px',
+                    width: '100%'
                   }}
-                  className="btn btn-outline"
-                  style={{ fontSize: '11px', padding: '4px 8px' }}
                 >
-                  Manage
+                  <BookOpen size={14} style={{ color: 'var(--text-dim)' }} /> Documentation
+                </button>
+                <button
+                  onClick={() => handleNavClick('help')}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '10px',
+                    padding: '8px 10px',
+                    borderRadius: '6px',
+                    background: currentView === 'help' ? 'var(--bg-secondary)' : 'transparent',
+                    border: currentView === 'help' ? '1px solid var(--border)' : '1px solid transparent',
+                    color: currentView === 'help' ? 'var(--text-main)' : 'var(--text-muted)',
+                    cursor: 'pointer',
+                    fontSize: '13px',
+                    width: '100%'
+                  }}
+                >
+                  <HelpCircle size={14} style={{ color: 'var(--text-dim)' }} /> Help Centre
+                </button>
+                <button
+                  onClick={() => handleModuleClick('settings')}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '10px',
+                    padding: '8px 10px',
+                    borderRadius: '6px',
+                    background: currentView === 'dashboard' && activeTab === 'settings' ? 'var(--bg-secondary)' : 'transparent',
+                    border: currentView === 'dashboard' && activeTab === 'settings' ? '1px solid var(--border)' : '1px solid transparent',
+                    color: currentView === 'dashboard' && activeTab === 'settings' ? 'var(--text-main)' : 'var(--text-muted)',
+                    cursor: 'pointer',
+                    fontSize: '13px',
+                    width: '100%'
+                  }}
+                >
+                  <SettingsIcon size={14} style={{ color: 'var(--text-dim)' }} /> System Settings
                 </button>
               </div>
-            ) : (
-              <button
-                onClick={() => {
-                  setIsMobileMenuOpen(false);
-                  openWalletModal();
-                }}
-                className="btn btn-dark"
-                style={{ width: '100%', padding: '10px', fontSize: '13px', justifyContent: 'center' }}
-              >
-                Connect Web3 Wallet
-              </button>
-            )}
-
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 12px', background: 'var(--bg)', border: '1px solid var(--border)', borderRadius: '8px', fontSize: '12px' }}>
-              <span style={{ color: 'var(--text-dim)' }}>Network:</span>
-              <span style={{ fontWeight: 600, color: 'var(--accent-blue)' }}>Base Mainnet (8453)</span>
             </div>
           </div>
 
-          {/* Section: External Community & Bot Links */}
-          <div style={{ borderTop: '1px solid var(--border)', paddingTop: '14px', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
+          {/* Drawer Footer: Community Links */}
+          <div style={{ borderTop: '1px solid var(--border)', padding: '12px 16px', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', background: 'var(--bg-secondary)' }}>
             <a
               href="https://t.me/OrionXSentinelBot"
               target="_blank"
               rel="noreferrer"
               className="btn btn-outline"
-              style={{ fontSize: '12px', padding: '8px 10px', justifyContent: 'center', gap: '6px' }}
+              style={{ fontSize: '11px', padding: '6px 8px', justifyContent: 'center', gap: '4px' }}
             >
-              <Send size={13} /> Telegram Bot
+              <Send size={12} /> Telegram Bot
             </a>
             <a
               href="https://github.com/OpeyemiMoses/Orion"
               target="_blank"
               rel="noreferrer"
               className="btn btn-outline"
-              style={{ fontSize: '12px', padding: '8px 10px', justifyContent: 'center', gap: '6px' }}
+              style={{ fontSize: '11px', padding: '6px 8px', justifyContent: 'center', gap: '4px' }}
             >
-              <ExternalLink size={13} /> GitHub Repo
+              <ExternalLink size={12} /> GitHub
             </a>
           </div>
         </div>

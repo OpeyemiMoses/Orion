@@ -502,8 +502,25 @@ html, body, #root {
   .responsive-two-col {
     grid-template-columns: 1fr !important;
   }
-  .mobile-in-app-bar {
-    display: none;
+  .header-active-module-pill {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 3px 8px;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    color: var(--text-main);
+    font-size: 11px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    max-width: 160px;
+  }
+
+  .header-active-module-pill:active {
+    background: var(--bg);
+    transform: scale(0.97);
   }
 }
 
@@ -523,59 +540,8 @@ html, body, #root {
     display: none !important;
   }
 
-  .mobile-in-app-bar {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 8px 12px;
-    background: var(--bg-card);
-    border-bottom: 1px solid var(--border);
-    position: sticky;
-    top: 48px;
-    z-index: 50;
-    backdrop-filter: blur(8px);
-  }
-
-  .mobile-active-module-pill {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    padding: 5px 10px;
-    background: var(--bg-secondary);
-    border: 1px solid var(--border);
-    border-radius: 20px;
-    color: var(--text-main);
-    font-size: 12px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.15s ease;
-  }
-
-  .mobile-active-module-pill:active {
-    background: var(--bg);
-    transform: scale(0.97);
-  }
-
-  .pill-icon-wrapper {
-    width: 22px;
-    height: 22px;
-    border-radius: 50%;
-    background: var(--text-main);
-    color: var(--bg);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
-
-  .pill-title {
-    max-width: 170px;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
-
   .main-content {
-    padding: 16px 12px !important;
+    padding: 14px 12px !important;
     max-width: 100% !important;
     width: 100% !important;
     min-width: 0 !important;
