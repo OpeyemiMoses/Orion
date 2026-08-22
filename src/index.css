@@ -580,8 +580,16 @@ html, body, #root {
     display: none;
   }
 
+  .header-github-btn {
+    display: none !important;
+  }
+
   .header-nav {
     display: none !important;
+  }
+
+  .header-mobile-toggle {
+    display: flex !important;
   }
 
   .addr {
@@ -600,5 +608,29 @@ html, body, #root {
   }
   .main-content {
     padding: 12px 8px !important;
+  }
+  .header-wallet-btn {
+    padding: 4px 8px !important;
+    font-size: 11px !important;
+  }
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
   }
 }
