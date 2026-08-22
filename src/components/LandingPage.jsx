@@ -121,9 +121,16 @@ export default function LandingPage({ onLaunchApp, openWalletModal }) {
           </div>
         </div>
 
-        {/* Right: 3D Mockup with Scale Rise */}
-        <div className="rise-in-scale rise-delay-2" style={{ minWidth: 0, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+        {/* Right: 3D Mockup + Floating Beam Accent with Scale Rise */}
+        <div className="rise-in-scale rise-delay-2" style={{ minWidth: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '20px' }}>
           <DashboardMockup />
+          <div className="floating-beam-primary" style={{ width: '100%', maxWidth: '380px', marginTop: '-10px' }}>
+            <img
+              src="/orion-beam.png"
+              alt="OrionX Autonomous Coordination"
+              style={{ width: '100%', height: 'auto', display: 'block', pointerEvents: 'none' }}
+            />
+          </div>
         </div>
       </section>
 

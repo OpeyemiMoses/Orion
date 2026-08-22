@@ -64,6 +64,13 @@ export default function App() {
 
   return (
     <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', background: 'var(--bg)' }}>
+      {/* Background Side Watermark */}
+      <img
+        src="/orion-beam.png"
+        className="side-watermark"
+        alt=""
+      />
+
       {/* App Navigation Header */}
       <Header
         currentView={currentView}

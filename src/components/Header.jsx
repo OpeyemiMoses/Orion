@@ -100,27 +100,12 @@ export default function Header({ currentView, setCurrentView, activeTab, setActi
             </span>
           </div>
 
-          {/* Latched Active Module Selector (Visible when in Console) */}
+          {/* Latched Active Module Selector (Mobile-Only when in Console) */}
           {currentView === 'dashboard' && (
             <button
               onClick={() => setIsMobileMenuOpen(true)}
               className="header-active-module-pill"
               title="Tap to switch modules"
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '6px',
-                padding: '4px 8px',
-                borderRadius: '16px',
-                background: 'var(--bg-secondary)',
-                border: '1px solid var(--border)',
-                color: 'var(--text-main)',
-                fontSize: '12px',
-                fontWeight: 600,
-                cursor: 'pointer',
-                transition: 'all 0.15s ease',
-                maxWidth: '180px'
-              }}
             >
               <CurrentModuleIcon size={13} style={{ color: 'var(--accent-blue)', flexShrink: 0 }} />
               <span style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', fontSize: '11px' }}>

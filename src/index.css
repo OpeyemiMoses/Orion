@@ -491,6 +491,10 @@ html, body, #root {
   min-width: 500px;
 }
 
+.header-active-module-pill {
+  display: none !important;
+}
+
 @media (max-width: 900px) {
   .hero-grid {
     grid-template-columns: 1fr !important;
@@ -502,11 +506,14 @@ html, body, #root {
   .responsive-two-col {
     grid-template-columns: 1fr !important;
   }
+}
+
+@media (max-width: 768px) {
   .header-active-module-pill {
-    display: flex;
+    display: flex !important;
     align-items: center;
     gap: 6px;
-    padding: 3px 8px;
+    padding: 3px 9px;
     background: var(--bg-secondary);
     border: 1px solid var(--border);
     border-radius: 16px;
@@ -522,9 +529,7 @@ html, body, #root {
     background: var(--bg);
     transform: scale(0.97);
   }
-}
 
-@media (max-width: 768px) {
   .app-layout {
     flex-direction: column;
     width: 100%;
