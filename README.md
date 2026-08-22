@@ -1,27 +1,20 @@
 <div align="center">
 
-<img src="public/logo.png" width="140" height="140" alt="OrionX Logo" />
+<img src="public/logo.png" width="120" height="120" alt="OrionX Logo" />
 
 # OrionX Sentinel
 
 **Autonomous DeFi Capital Co-Pilot & Security Sentinel on Base Mainnet**
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Network: Base](https://img.shields.io/badge/Network-Base%20Mainnet%20(8453)-0052FF)](https://base.org)
-[![React](https://img.shields.io/badge/Frontend-React%2019%20%2B%20Vite-61DAFB)](https://vitejs.dev)
-[![RainbowKit](https://img.shields.io/badge/Web3-RainbowKit%20%2B%20Wagmi%20%2B%20Viem-7C3AED)](https://rainbowkit.com)
-[![Telegram Bot](https://img.shields.io/badge/Sentinel-Telegram%20Bot%20(@OrionXSentinelBot)-2CA5E0)](https://t.me/OrionXSentinelBot)
-[![Built for Orion](https://img.shields.io/badge/Hackathon-Orion%20Agents-0052FF)](https://orionagents.org/hackathon)
-
 *Non-custodial autonomous DeFi security sentinel that monitors, optimizes, and protects your capital across Base DeFi 24/7 with zero simulated data.*
 
-[🌐 Live Web Application](https://orionx-agent.vercel.app/) • [🤖 Telegram Bot (@OrionXSentinelBot)](https://t.me/OrionXSentinelBot) • [🚀 Backend API (Railway)](https://orion-production-3db8.up.railway.app) • [📖 Full Docs](https://orionx-agent.vercel.app/)
+[Live Web Application](https://orionx-agent.vercel.app/) • [Telegram Bot (@OrionXSentinelBot)](https://t.me/OrionXSentinelBot) • [Backend API (Railway)](https://orion-production-3db8.up.railway.app) • [GitHub Repository](https://github.com/OpeyemiMoses/Orion)
 
 </div>
 
 ---
 
-## 📑 Table of Contents
+## Table of Contents
 - [Overview](#overview)
 - [The Problem & The Solution](#the-problem--the-solution)
 - [Key Features & Modules](#key-features--modules)
@@ -44,7 +37,7 @@
 
 ---
 
-## 🌟 Overview
+## Overview
 
 **OrionX** is a non-custodial, autonomous DeFi sentinel engineered natively for **Base Mainnet (Chain ID 8453)**. It transforms passive crypto portfolios into self-defending, yield-maximizing, and incentive-qualifying positions.
 
@@ -55,7 +48,7 @@ OrionX operates across 3 core pillars:
 
 ---
 
-## ⚡ The Problem & The Solution
+## The Problem & The Solution
 
 | DeFi Pain Point | OrionX Autonomous Solution |
 |---|---|
@@ -66,7 +59,7 @@ OrionX operates across 3 core pillars:
 
 ---
 
-## 🛡️ Key Features & Modules
+## Key Features & Modules
 
 ### 1. Approval Shield (On-Chain Permission Manager)
 * **Real-Time Allowance Scanning:** Audits active allowances for `USDC`, `WETH`, `cbBTC`, `AERO`, `DAI`, and `DEGEN` across Uniswap v3, Aerodrome, Moonwell, 1inch, BaseSwap, and custom spenders.
@@ -120,7 +113,7 @@ OrionX operates across 3 core pillars:
 
 ---
 
-## 🏗️ System Architecture
+## System Architecture
 
 ```
 ┌──────────────────────────────────────────────────────────────────────────────────────────────────┐
@@ -158,7 +151,7 @@ OrionX operates across 3 core pillars:
 
 ---
 
-## 🌐 Multi-RPC & Resilient Infrastructure
+## Multi-RPC & Resilient Infrastructure
 
 OrionX uses an automatic failover pool to ensure high availability and prevent RPC rate limits:
 
@@ -184,7 +177,7 @@ OrionX uses an automatic failover pool to ensure high availability and prevent R
 
 ---
 
-## 💻 Tech Stack
+## Tech Stack
 
 | Layer | Technologies |
 |---|---|
@@ -197,14 +190,14 @@ OrionX uses an automatic failover pool to ensure high availability and prevent R
 
 ---
 
-## 📂 Project Directory Structure
+## Project Directory Structure
 
 ```
 orion/
 ├── public/
 │   ├── favicon.png                   # Favicon
 │   ├── logo.png                      # OrionX avatar & logo
-│   └── orion-beam.png                # Background beam illustration
+│   └── orion-beam.png                # Brand asset
 ├── server/
 │   ├── data/
 │   │   └── subscribers.json          # Persistent Telegram subscriber store
@@ -249,7 +242,7 @@ orion/
 
 ---
 
-## 🔒 Security & Non-Custodial Guarantee
+## Security & Non-Custodial Guarantee
 
 1. **Zero Private Key Exposure:** OrionX runs completely non-custodially. Private keys and seed phrases never touch our codebase, frontend, or backend.
 2. **Explicit User Signature:** Every state-modifying action (zero-allowance revocation, debt repay, liquidity deposit) requires manual confirmation through your connected Web3 wallet (MetaMask, Coinbase Wallet, Rainbow, Rabby).
@@ -258,7 +251,7 @@ orion/
 
 ---
 
-## 🚀 Getting Started
+## Getting Started
 
 ### Prerequisites
 - **Node.js:** `>= 18.0.0`
@@ -301,7 +294,7 @@ Open [http://localhost:5173](http://localhost:5173) in your browser.
 
 ---
 
-## 💬 Telegram Bot Commands Quick Reference
+## Telegram Bot Commands Quick Reference
 
 Send these commands to **[@OrionXSentinelBot](https://t.me/OrionXSentinelBot)**:
 
@@ -319,7 +312,7 @@ Send these commands to **[@OrionXSentinelBot](https://t.me/OrionXSentinelBot)**:
 
 ---
 
-## 🤝 Contributing & License
+## Contributing & License
 
 Contributions, feedback, and feature requests are warmly welcomed!
 - Review our [Contributing Guide](CONTRIBUTING.md) and [Code of Conduct](CODE_OF_CONDUCT.md).
