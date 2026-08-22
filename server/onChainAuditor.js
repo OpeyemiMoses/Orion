@@ -23,6 +23,21 @@ const BASESCAN_KEY = process.env.BASESCAN_API_KEY || '';
 const LLAMA_API    = 'https://api.llama.fi';
 const LLAMA_YIELDS = 'https://yields.llama.fi/pools';
 
+const KNOWN_PROTOCOL_SLUGS = {
+  '0xcf77a3ba9a5ca399b7c97c74d54e5b1beb874e43': 'aerodrome-finance',
+  '0x420dd381b31aef6683db6b902084cb0ffece40da': 'aerodrome-finance',
+  '0x940181a94a35a4569e4529a3cdfb74e38fd98631': 'aerodrome-finance',
+  '0xfbb21d0380bee3312b33c4353c8936a0f13ef26c': 'moonwell',
+  '0xedc817a28e8b93b03976fbd4a3ddbc9f7d176c22': 'moonwell',
+  '0xff8adec2221f9f4d8dfbafa6b9a297d17603493d': 'moonwell',
+  '0x9c4ec768c28520b50860ea7a15bd7213a9ff58bf': 'compound-v3',
+  '0x46e6b214ba08a2ea10c07c45059631b64d4bf52e': 'compound-v3',
+  '0xa238dd80c25cedc05e0f0d090854501e78988888': 'aave-v3',
+  '0x0b3e328455c4059eeb9e3f84b5543f74e24e7e1b': 'virtual-protocol',
+  '0x4ed4e862860bed51a9570b96d89af5e1b0efefed': 'degen',
+  '0xcbb7c0000ab88b473b1f5afd9ef808440eed33bf': 'coinbase-wrapped-btc',
+};
+
 // In-Memory Persistent Audit Cache to eliminate verification flapping
 const auditMemoryCache = new Map();
 
@@ -253,14 +268,14 @@ export async function auditProtocolOnChain(address) {
   isProxy = isProxy || isProxyFromScan;
   implementationAddress = implementationAddress || implementationFromScan;
 
-  // 4. Live TVL / Liquidity / Market Cap Lookup via DexScreener & DeFi Llama
+  // 4. Live Real-Time DexScreener & DeFi Llama Queries
   let realTvlFormatted = null;
   let dexLiquidity = null;
   let dexMarketCap = null;
   let dex24hVolume = null;
   let protocolName = contractName;
 
-  // Query DexScreener for instant real-time Base token liquidity and pool depths
+  // 4a. Query DexScreener for real-time Base token liquidity and pool depths
   try {
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), 3500);
@@ -270,7 +285,6 @@ export async function auditProtocolOnChain(address) {
     if (dexRes.ok) {
       const dexData = await dexRes.json();
       if (dexData.pairs && dexData.pairs.length > 0) {
-        // Find best Base pair
         const basePairs = dexData.pairs.filter(p => p.chainId === 'base');
         const primaryPair = basePairs.length > 0 ? basePairs[0] : dexData.pairs[0];
 
@@ -297,11 +311,35 @@ export async function auditProtocolOnChain(address) {
     console.warn('[OnChainAuditor] DexScreener note:', dexErr.message);
   }
 
-  // If no DexScreener pool, query DeFi Llama Pools
-  if (!realTvlFormatted) {
+  // 4b. Query DeFi Llama Protocol Slug if known
+  const slug = KNOWN_PROTOCOL_SLUGS[addr];
+  if (slug) {
     try {
       const controller = new AbortController();
       const timer = setTimeout(() => controller.abort(), 3500);
+      const res = await fetch(`${LLAMA_API}/protocol/${slug}`, { signal: controller.signal });
+      clearTimeout(timer);
+
+      if (res.ok) {
+        const data = await res.json();
+        if (data.tvl) {
+          const val = data.chainTvls?.Base?.tvl || data.tvl;
+          if (val > 0) {
+            if (!dexLiquidity || !isTokenContract) {
+              realTvlFormatted = formatUsdAmount(val);
+            }
+            protocolName = data.name || protocolName;
+          }
+        }
+      }
+    } catch {}
+  }
+
+  // 4c. Query DeFi Llama pools
+  if (!realTvlFormatted) {
+    try {
+      const controller = new AbortController();
+      const timer = setTimeout(() => controller.abort(), 3000);
       const poolsRes = await fetch(LLAMA_YIELDS, { signal: controller.signal });
       clearTimeout(timer);
 

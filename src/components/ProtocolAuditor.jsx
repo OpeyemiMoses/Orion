@@ -1,10 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Search, ExternalLink, AlertTriangle, CheckCircle2, Loader,
   ShieldAlert, Database, Code2, Globe, GitBranch, AtSign, ArrowLeft,
-  Cpu, HeartPulse, LineChart, TrendingUp, AlertOctagon, Eye, ShieldCheck
+  Cpu, HeartPulse, LineChart, TrendingUp, AlertOctagon, Eye, ShieldCheck, Activity
 } from 'lucide-react';
-import { auditProtocol, KNOWN_BASE_PROTOCOLS } from '../services/protocolAudit';
+import { auditProtocol, KNOWN_BASE_PROTOCOLS, fetchLiveProtocolStats } from '../services/protocolAudit';
 
 // ── Health meter bar ──────────────────────────────────────────────────────────
 function HealthBar({ score }) {
@@ -29,9 +29,6 @@ function HealthBar({ score }) {
 // ── Risk flag row ─────────────────────────────────────────────────────────────
 function RiskFlag({ level, text }) {
   const cls = level === 'Critical' ? 'badge-danger' : level === 'High' ? 'badge-danger' : level === 'Medium' ? 'badge-warn' : 'badge-neutral';
-  const icon = level === 'Critical' || level === 'High'
-    ? <AlertTriangle size={13} />
-    : <AlertTriangle size={13} style={{ opacity: 0.6 }} />;
 
   return (
     <div style={{
@@ -89,10 +86,34 @@ const FEATURED_PROTOCOLS = [
 ];
 
 export default function ProtocolAuditor() {
-  const [inputAddr, setInputAddr]   = useState('');
-  const [result,    setResult]      = useState(null);
-  const [loading,   setLoading]     = useState(false);
-  const [error,     setError]       = useState('');
+  const [inputAddr, setInputAddr]         = useState('');
+  const [result,    setResult]            = useState(null);
+  const [loading,   setLoading]           = useState(false);
+  const [error,     setError]             = useState('');
+  const [featuredStats, setFeaturedStats] = useState({});
+
+  // Fetch live stats for featured protocols on mount
+  useEffect(() => {
+    let isMounted = true;
+    const loadFeaturedStats = async () => {
+      const stats = {};
+      await Promise.all(
+        FEATURED_PROTOCOLS.map(async (addr) => {
+          try {
+            const data = await fetchLiveProtocolStats(addr);
+            if (isMounted && data) {
+              stats[addr] = data;
+            }
+          } catch {}
+        })
+      );
+      if (isMounted) {
+        setFeaturedStats(stats);
+      }
+    };
+    loadFeaturedStats();
+    return () => { isMounted = false; };
+  }, []);
 
   const runAudit = async (address) => {
     setLoading(true);
@@ -121,7 +142,7 @@ export default function ProtocolAuditor() {
       <div style={{ marginBottom: '28px' }}>
         <h1 className="page-title">Protocol & Token Auditor</h1>
         <p className="page-subtitle">
-          Paste any Base ecosystem smart contract or token address. OrionX reads multi-endpoint Base RPCs, BaseScan, and DeFi Llama.
+          Paste any Base ecosystem smart contract or token address. OrionX queries multi-endpoint Base RPCs, multi-explorer verifications, DexScreener liquidity pools, and DeFi Llama live.
         </p>
       </div>
 
@@ -146,35 +167,54 @@ export default function ProtocolAuditor() {
       {/* ── Quick-pick featured protocols ─────────────────── */}
       {!result && !loading && (
         <div style={{ marginBottom: '32px' }}>
-          <p style={{ fontSize: '11px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.07em', color: 'var(--text-dim)', marginBottom: '10px' }}>
-            Base ecosystem — featured protocols
-          </p>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '10px' }}>
+            <p style={{ fontSize: '11px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.07em', color: 'var(--text-dim)', margin: 0 }}>
+              Base ecosystem — featured protocols & tokens
+            </p>
+            <span style={{ fontSize: '11px', color: 'var(--text-dim)', display: 'flex', alignItems: 'center', gap: '4px' }}>
+              <span className="live-dot" style={{ width: 6, height: 6, borderRadius: '50%', background: 'var(--accent-green)', display: 'inline-block' }} /> Live On-Chain Data
+            </span>
+          </div>
           <div className="card" style={{ overflow: 'hidden' }}>
             <table className="data-table">
               <thead>
                 <tr>
-                  <th>Protocol</th>
+                  <th>Protocol / Asset</th>
                   <th>Name</th>
                   <th>Type</th>
+                  <th>Live Metrics</th>
                   <th>Audited</th>
-                  <th style={{ textAlign: 'right' }}></th>
+                  <th style={{ textAlign: 'right' }}>Action</th>
                 </tr>
               </thead>
               <tbody>
                 {FEATURED_PROTOCOLS.map(addr => {
                   const p = KNOWN_BASE_PROTOCOLS[addr];
                   if (!p) return null;
+                  const stat = featuredStats[addr];
                   return (
                     <tr key={addr} style={{ cursor: 'pointer' }} onClick={() => { setInputAddr(addr); runAudit(addr); }}>
                       <td style={{ fontWeight: 600 }}>{p.protocol}</td>
                       <td style={{ color: 'var(--text-muted)', fontSize: '13px' }}>{p.name}</td>
                       <td><span className="badge badge-neutral" style={{ fontSize: '10px' }}>{p.type}</span></td>
+                      <td style={{ fontFamily: 'var(--font-mono)', fontSize: '12px' }}>
+                        {stat?.tvl && stat.tvl !== 'N/A' ? (
+                          <div>
+                            <span style={{ fontWeight: 600, color: 'var(--text-main)' }}>{stat.tvl}</span>
+                            {stat.marketCap && <div style={{ fontSize: '10px', color: 'var(--text-dim)' }}>MCap: {stat.marketCap}</div>}
+                          </div>
+                        ) : (
+                          <span style={{ color: 'var(--text-dim)', fontSize: '11px' }}>Probing…</span>
+                        )}
+                      </td>
                       <td>
                         {p.audited
                           ? <span className="badge badge-settled" style={{ fontSize: '10px' }}>✓ Audited</span>
                           : <span className="badge badge-warn"    style={{ fontSize: '10px' }}>Unaudited</span>}
                       </td>
-                      <td style={{ textAlign: 'right', fontSize: '12px', color: 'var(--text-dim)' }}>Open</td>
+                      <td style={{ textAlign: 'right', fontSize: '12px', color: 'var(--text-dim)' }}>
+                        <span className="btn btn-ghost" style={{ padding: '2px 8px', fontSize: '11px' }}>Audit →</span>
+                      </td>
                     </tr>
                   );
                 })}
@@ -197,43 +237,19 @@ export default function ProtocolAuditor() {
           <Loader size={22} className="spin" style={{ color: 'var(--text-dim)', marginBottom: '12px' }} />
           <div style={{ fontWeight: 600, marginBottom: '6px', fontSize: '14px' }}>Auditing protocol security…</div>
           <div style={{ fontSize: '12px', color: 'var(--text-muted)', lineHeight: 1.6 }}>
-            Verifying Base contract security · Checking independent audit firms · Querying DeFi Llama TVL
+            Verifying Base contract bytecode · Querying DexScreener & DeFi Llama endpoints · Synthesizing Deep AI reasoning
           </div>
         </div>
       )}
 
-      {/* ── Standard wallet / Not a Base contract result ─────── */}
-      {r?.isEOA && (
-        <div style={{ maxWidth: '580px' }}>
-          <button
-            onClick={() => { setResult(null); setInputAddr(''); }}
-            className="btn btn-outline"
-            style={{ marginBottom: '16px', gap: '6px', fontSize: '12px' }}
-          >
-            <ArrowLeft size={13} /> Back to featured protocols & tokens
-          </button>
-          <div className="card" style={{ padding: '24px', border: '1px solid rgba(220, 38, 38, 0.25)', background: 'rgba(220, 38, 38, 0.02)' }}>
-            <div style={{ fontWeight: 600, marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--accent-red)' }}>
-              <AlertTriangle size={17} /> Not a Base Contract / Personal Wallet
-            </div>
-            <p style={{ fontSize: '13px', color: 'var(--text-muted)', lineHeight: 1.6, marginBottom: '12px' }}>
-              <span className="addr" style={{ color: 'var(--text-main)', fontWeight: 600 }}>{r.address}</span> has no deployed contract bytecode or token interfaces found on <b>Base Mainnet (Chain ID 8453)</b>.
-            </p>
-            <div style={{ fontSize: '12px', color: 'var(--text-dim)', background: 'var(--bg)', padding: '10px 12px', borderRadius: '6px', border: '1px solid var(--border)' }}>
-              ⚠️ OrionX only audits smart contracts and tokens natively deployed on Base Mainnet.
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* ── Full audit report ────────────────────────────────── */}
-      {r && !r.isEOA && (
+      {/* ── Audit result ────────────────────────────────────── */}
+      {r && !loading && (
         <div>
-          {/* Back button */}
+          {/* Back button to search another */}
           <button
             onClick={() => { setResult(null); setInputAddr(''); }}
-            className="btn btn-outline"
-            style={{ marginBottom: '16px', gap: '6px', fontSize: '12px' }}
+            className="btn btn-ghost"
+            style={{ marginBottom: '16px', padding: '4px 8px', fontSize: '12px', display: 'inline-flex', alignItems: 'center', gap: '6px' }}
           >
             <ArrowLeft size={13} /> Back to featured protocols
           </button>
@@ -262,11 +278,13 @@ export default function ProtocolAuditor() {
               </div>
               {r.tvl && r.tvl !== 'N/A' && (
                 <div style={{ textAlign: 'right' }}>
-                  <div className="stat-label">{r.dexLiquidity ? 'DEX Liquidity' : 'Protocol TVL'}</div>
-                  <div className="stat-value" style={{ fontSize: '24px' }}>{r.tvl}</div>
-                  {r.marketCap && <div className="stat-sub" style={{ color: 'var(--text-dim)', fontSize: '11px' }}>MCap: {r.marketCap}</div>}
+                  <div className="stat-label" style={{ letterSpacing: '0.05em', textTransform: 'uppercase', fontSize: '10px', color: 'var(--text-dim)', fontWeight: 600 }}>
+                    {r.dexLiquidity ? 'DEX LIQUIDITY' : 'PROTOCOL TVL'}
+                  </div>
+                  <div className="stat-value" style={{ fontSize: '26px', fontWeight: 800, color: 'var(--text-main)' }}>{r.tvl}</div>
+                  {r.marketCap && <div className="stat-sub" style={{ color: 'var(--text-dim)', fontSize: '11px', marginTop: '2px' }}>MCap: {r.marketCap}</div>}
                   {r.volume24h && <div className="stat-sub" style={{ color: 'var(--text-dim)', fontSize: '11px' }}>24h Vol: {r.volume24h}</div>}
-                  {r.llamaCategory && <div className="stat-sub">{r.llamaCategory}</div>}
+                  {r.llamaCategory && <div className="stat-sub" style={{ color: 'var(--text-dim)', fontSize: '11px' }}>{r.llamaCategory}</div>}
                 </div>
               )}
             </div>
@@ -333,227 +351,163 @@ export default function ProtocolAuditor() {
                 </span>
               </div>
 
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '16px', marginBottom: '16px' }}>
+              {/* 6-Dimensional AI Intelligence Cards */}
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '16px', marginBottom: '20px' }}>
                 {/* 1. Details & Architecture */}
-                <div className="card" style={{ padding: '20px' }}>
+                <div className="card" style={{ padding: '16px 18px' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px' }}>
-                    <ShieldCheck size={16} style={{ color: 'var(--text-dim)' }} />
-                    <span style={{ fontSize: '12px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.07em', color: 'var(--text-dim)' }}>
-                      1. Details & Architecture
-                    </span>
+                    <Code2 size={15} style={{ color: 'var(--accent-blue)' }} />
+                    <span style={{ fontWeight: 600, fontSize: '13px' }}>1. Details & Architecture</span>
                   </div>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', fontSize: '12px' }}>
-                    <div><b>Contract Type:</b> <span style={{ color: 'var(--text-muted)' }}>{r.deepAiReasoning.architecture.contractType}</span></div>
-                    <div><b>Bytecode:</b> <span style={{ color: 'var(--text-muted)' }}>{r.deepAiReasoning.architecture.verification}</span></div>
-                    <div><b>Proxy Pattern:</b> <span style={{ color: 'var(--text-muted)' }}>{r.deepAiReasoning.architecture.proxyPattern}</span></div>
-                    <div><b>Governance:</b> <span style={{ color: 'var(--text-muted)' }}>{r.deepAiReasoning.architecture.governanceControl}</span></div>
-                    <div><b>Timelock:</b> <span style={{ color: 'var(--text-muted)' }}>{r.deepAiReasoning.architecture.timelockDelay}</span></div>
+                  <div style={{ fontSize: '12px', display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                      <span style={{ color: 'var(--text-dim)' }}>Verification:</span>
+                      <span style={{ fontWeight: 500 }}>{r.deepAiReasoning.architecture.verification}</span>
+                    </div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                      <span style={{ color: 'var(--text-dim)' }}>Proxy Pattern:</span>
+                      <span style={{ fontWeight: 500 }}>{r.deepAiReasoning.architecture.proxyPattern}</span>
+                    </div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                      <span style={{ color: 'var(--text-dim)' }}>Governance:</span>
+                      <span style={{ fontWeight: 500, textAlign: 'right', maxWidth: '170px' }}>{r.deepAiReasoning.architecture.governanceControl}</span>
+                    </div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                      <span style={{ color: 'var(--text-dim)' }}>Timelock Delay:</span>
+                      <span style={{ fontWeight: 500 }}>{r.deepAiReasoning.architecture.timelockDelay}</span>
+                    </div>
                   </div>
                 </div>
 
                 {/* 2. Health & Solvency */}
-                <div className="card" style={{ padding: '20px' }}>
+                <div className="card" style={{ padding: '16px 18px' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px' }}>
-                    <HeartPulse size={16} style={{ color: '#16a34a' }} />
-                    <span style={{ fontSize: '12px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.07em', color: 'var(--text-dim)' }}>
-                      2. Health & Solvency
-                    </span>
+                    <HeartPulse size={15} style={{ color: 'var(--accent-green)' }} />
+                    <span style={{ fontWeight: 600, fontSize: '13px' }}>2. Health & Solvency</span>
                   </div>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', fontSize: '12px' }}>
-                    <div><b>Status:</b> <span style={{ color: 'var(--text-muted)' }}>{r.deepAiReasoning.healthMetrics.status}</span></div>
-                    <div><b>Solvency Ratio:</b> <span style={{ color: 'var(--text-muted)' }}>{r.deepAiReasoning.healthMetrics.solvencyRatio}</span></div>
-                    <div><b>Bad Debt:</b> <span style={{ color: 'var(--text-muted)' }}>{r.deepAiReasoning.healthMetrics.badDebtExposure}</span></div>
-                    <div><b>Utilization:</b> <span style={{ color: 'var(--text-muted)' }}>{r.deepAiReasoning.healthMetrics.utilizationRate}</span></div>
-                    <div><b>TVL Trajectory:</b> <span style={{ color: '#16a34a' }}>{r.deepAiReasoning.healthMetrics.tvlTrajectory}</span></div>
+                  <div style={{ fontSize: '12px', display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                      <span style={{ color: 'var(--text-dim)' }}>Solvency Ratio:</span>
+                      <span style={{ fontWeight: 600, color: 'var(--accent-green)' }}>{r.deepAiReasoning.healthMetrics.solvencyRatio}</span>
+                    </div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                      <span style={{ color: 'var(--text-dim)' }}>Bad Debt Exposure:</span>
+                      <span style={{ fontWeight: 500 }}>{r.deepAiReasoning.healthMetrics.badDebtExposure}</span>
+                    </div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                      <span style={{ color: 'var(--text-dim)' }}>Utilization:</span>
+                      <span style={{ fontWeight: 500 }}>{r.deepAiReasoning.healthMetrics.utilizationRate}</span>
+                    </div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                      <span style={{ color: 'var(--text-dim)' }}>TVL Trajectory:</span>
+                      <span style={{ fontWeight: 500 }}>{r.deepAiReasoning.healthMetrics.tvlTrajectory}</span>
+                    </div>
                   </div>
                 </div>
 
                 {/* 3. Price & Liquidity Depth */}
-                <div className="card" style={{ padding: '20px' }}>
+                <div className="card" style={{ padding: '16px 18px' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px' }}>
-                    <LineChart size={16} style={{ color: 'var(--accent-blue)' }} />
-                    <span style={{ fontSize: '12px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.07em', color: 'var(--text-dim)' }}>
-                      3. Price & Liquidity Depth
-                    </span>
+                    <LineChart size={15} style={{ color: 'var(--accent-purple, #9333ea)' }} />
+                    <span style={{ fontWeight: 600, fontSize: '13px' }}>3. Price & Liquidity Depth</span>
                   </div>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', fontSize: '12px' }}>
-                    <div><b>Price Stability:</b> <span style={{ color: 'var(--text-muted)' }}>{r.deepAiReasoning.priceLiquidity.priceStability}</span></div>
-                    <div><b>DEX Depth:</b> <span style={{ color: 'var(--text-muted)' }}>{r.deepAiReasoning.priceLiquidity.dexDepth}</span></div>
-                    <div><b>Slippage Model:</b> <span style={{ color: 'var(--text-muted)' }}>{r.deepAiReasoning.priceLiquidity.slippageModel}</span></div>
-                    <div><b>Oracle Feeds:</b> <span style={{ color: 'var(--text-muted)' }}>{r.deepAiReasoning.priceLiquidity.oracleSource}</span></div>
+                  <div style={{ fontSize: '12px', display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                      <span style={{ color: 'var(--text-dim)' }}>Price Stability:</span>
+                      <span style={{ fontWeight: 500 }}>{r.deepAiReasoning.priceLiquidity.priceStability}</span>
+                    </div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                      <span style={{ color: 'var(--text-dim)' }}>DEX Depth:</span>
+                      <span style={{ fontWeight: 500, textAlign: 'right', maxWidth: '170px' }}>{r.deepAiReasoning.priceLiquidity.dexDepth}</span>
+                    </div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                      <span style={{ color: 'var(--text-dim)' }}>Oracle Feeds:</span>
+                      <span style={{ fontWeight: 500 }}>{r.deepAiReasoning.priceLiquidity.oracleSource}</span>
+                    </div>
                   </div>
                 </div>
 
                 {/* 4. Market Sentiment & Velocity */}
-                <div className="card" style={{ padding: '20px' }}>
+                <div className="card" style={{ padding: '16px 18px' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px' }}>
-                    <TrendingUp size={16} style={{ color: '#8b5cf6' }} />
-                    <span style={{ fontSize: '12px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.07em', color: 'var(--text-dim)' }}>
-                      4. Market Sentiment & Velocity
-                    </span>
+                    <TrendingUp size={15} style={{ color: 'var(--accent-orange, #ea580c)' }} />
+                    <span style={{ fontWeight: 600, fontSize: '13px' }}>4. Market Sentiment & Velocity</span>
                   </div>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', fontSize: '12px' }}>
-                    <div><b>Sentiment:</b> <span style={{ color: 'var(--text-muted)' }}>{r.deepAiReasoning.marketSentiment.sentimentScore}</span></div>
-                    <div><b>Volume/TVL Velocity:</b> <span style={{ color: 'var(--text-muted)' }}>{r.deepAiReasoning.marketSentiment.volumeToTvlRatio}</span></div>
-                    <div><b>Ecosystem Role:</b> <span style={{ color: 'var(--text-muted)' }}>{r.deepAiReasoning.marketSentiment.ecosystemAdoption}</span></div>
-                    <div><b>Whale Dispersion:</b> <span style={{ color: 'var(--text-muted)' }}>{r.deepAiReasoning.marketSentiment.whaleConcentration}</span></div>
+                  <div style={{ fontSize: '12px', display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                      <span style={{ color: 'var(--text-dim)' }}>Sentiment Score:</span>
+                      <span style={{ fontWeight: 600 }}>{r.deepAiReasoning.marketSentiment.sentimentScore}</span>
+                    </div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                      <span style={{ color: 'var(--text-dim)' }}>Volume/TVL Ratio:</span>
+                      <span style={{ fontWeight: 500 }}>{r.deepAiReasoning.marketSentiment.volumeToTvlRatio}</span>
+                    </div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                      <span style={{ color: 'var(--text-dim)' }}>Whale Dispersion:</span>
+                      <span style={{ fontWeight: 500 }}>{r.deepAiReasoning.marketSentiment.whaleConcentration}</span>
+                    </div>
                   </div>
                 </div>
               </div>
 
-              {/* 5. Exploit Vectors & 6. What to Watch Grid */}
-              <div className="responsive-two-col" style={{ gap: '16px' }}>
-                {/* 5. Exploit Vector Assessment */}
-                <div className="card" style={{ padding: '20px' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px' }}>
-                    <AlertOctagon size={16} style={{ color: '#d97706' }} />
-                    <span style={{ fontSize: '12px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.07em', color: 'var(--text-dim)' }}>
-                      5. Exploit Vector Assessment
-                    </span>
-                  </div>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                    {r.deepAiReasoning.exploitVectors.map((v, idx) => (
-                      <div key={idx} style={{ background: 'var(--bg)', padding: '10px 12px', borderRadius: '6px', border: '1px solid var(--border)' }}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '3px' }}>
-                          <span style={{ fontSize: '12px', fontWeight: 600, color: 'var(--text-main)' }}>{v.vector}</span>
-                          <span className={`badge ${v.risk === 'Low' ? 'badge-settled' : 'badge-warn'}`} style={{ fontSize: '10px' }}>
-                            {v.risk} Risk
-                          </span>
-                        </div>
-                        <div style={{ fontSize: '11px', color: 'var(--text-muted)', lineHeight: 1.4 }}>
-                          {v.detail}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
+              {/* Exploit Vector Matrix */}
+              <div className="card" style={{ padding: '18px 20px', marginBottom: '16px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px' }}>
+                  <AlertOctagon size={16} style={{ color: 'var(--accent-red)' }} />
+                  <span style={{ fontWeight: 600, fontSize: '13px' }}>5. Exploit Vector Assessment Matrix</span>
                 </div>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '10px' }}>
+                  {r.deepAiReasoning.exploitVectors.map((v, i) => (
+                    <div key={i} style={{ padding: '10px 12px', background: 'var(--bg)', borderRadius: '6px', border: '1px solid var(--border)', fontSize: '12px' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
+                        <span style={{ fontWeight: 600 }}>{v.vector}</span>
+                        <span className={v.risk === 'Critical' ? 'badge-danger' : v.risk === 'Medium' ? 'badge-warn' : 'badge-settled'} style={{ fontSize: '9px' }}>
+                          {v.risk}
+                        </span>
+                      </div>
+                      <div style={{ color: 'var(--text-muted)', fontSize: '11px', lineHeight: 1.4 }}>{v.detail}</div>
+                    </div>
+                  ))}
+                </div>
+              </div>
 
-                {/* 6. Critical "What to Watch" */}
-                <div className="card" style={{ padding: '20px' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px' }}>
-                    <Eye size={16} style={{ color: 'var(--accent-blue)' }} />
-                    <span style={{ fontSize: '12px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.07em', color: 'var(--text-dim)' }}>
-                      6. Critical "What to Watch"
-                    </span>
-                  </div>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                    {r.deepAiReasoning.whatToWatch.map((item, idx) => (
-                      <div key={idx} style={{ display: 'flex', gap: '10px', background: 'var(--bg)', padding: '10px 12px', borderRadius: '6px', border: '1px solid var(--border)' }}>
-                        <span style={{ fontSize: '11px', fontWeight: 700, color: 'var(--accent-blue)', flexShrink: 0 }}>
-                          #{idx + 1}
-                        </span>
-                        <span style={{ fontSize: '11px', color: 'var(--text-muted)', lineHeight: 1.45 }}>
-                          {item}
-                        </span>
-                      </div>
-                    ))}
-                  </div>
+              {/* Critical "What to Watch" */}
+              <div className="card" style={{ padding: '18px 20px', background: 'var(--bg-secondary)', border: '1px solid var(--border)' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '10px' }}>
+                  <Eye size={16} style={{ color: 'var(--accent-blue)' }} />
+                  <span style={{ fontWeight: 600, fontSize: '13px' }}>6. Actionable Telemetry: "What to Watch"</span>
                 </div>
+                <ul style={{ margin: 0, paddingLeft: '20px', fontSize: '12px', color: 'var(--text-muted)', display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                  {r.deepAiReasoning.whatToWatch.map((item, i) => (
+                    <li key={i} style={{ lineHeight: 1.5 }}>{item}</li>
+                  ))}
+                </ul>
               </div>
             </div>
           )}
 
-          {/* ── Detailed breakdown table ──────────────────────── */}
-          <div style={{ marginBottom: '24px' }}>
-            <p style={{ fontSize: '11px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.07em', color: 'var(--text-dim)', marginBottom: '12px' }}>
-              Audit details
-            </p>
-            <div className="card" style={{ overflow: 'hidden' }}>
-              <table className="data-table">
-                <thead>
-                  <tr>
-                    <th>Dimension</th>
-                    <th>Finding</th>
-                    <th>Canonical State</th>
-                    <th>Source</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {[
-                    ['Protocol name',     r.name,                                          r.sourceVerified ? 'badge-settled' : 'badge-neutral', 'BaseScan'],
-                    ['Protocol type',     r.type,                                          'badge-neutral',                                       'Bytecode analysis'],
-                    ['Contract address',  `${r.address.slice(0,14)}…${r.address.slice(-6)}`, 'badge-neutral',                                    'Base RPC'],
-                    ['Source code',       r.sourceVerified ? `Verified (${r.compiler || 'Solidity'})` : 'Not published', r.sourceVerified ? 'badge-settled' : 'badge-danger', 'BaseScan'],
-                    ['License',          r.licenseType || 'Open-Source',                  'badge-neutral',                                       'BaseScan'],
-                    ['Proxy pattern',     r.isProxy ? `EIP-1967 upgradeable (impl: ${r.implementationAddress?.slice(0,10)}…)` : 'Not a proxy — immutable bytecode', r.isProxy ? 'badge-warn' : 'badge-settled', 'Base RPC'],
-                    ['Audit history',     r.auditFirms?.length > 0 ? r.auditFirms.join(', ') : (r.sourceVerified ? 'Verified Open-Source Bytecode' : 'No audits on record'), r.audited ? 'badge-settled' : 'badge-warn', 'Protocol data'],
-                    ['Security msig',     r.adminMsig ? 'Multi-sig admin key confirmed' : (r.isProxy ? 'Admin proxy key' : 'Immutable / Non-upgradeable'), r.adminMsig || !r.isProxy ? 'badge-settled' : 'badge-neutral', 'Protocol data'],
-                    ['Bytecode size',     `${r.bytecodeSize.toLocaleString()} bytes`,      'badge-neutral',                                       'Base RPC'],
-                    ['Launch date',       r.launched || (r.sourceVerified ? 'Verified on Base Mainnet' : 'Unknown'), 'badge-neutral',           'Protocol data'],
-                  ].map(([dim, val, cls, src]) => (
-                    <tr key={dim}>
-                      <td style={{ fontWeight: 500, fontSize: '13px', whiteSpace: 'nowrap' }}>{dim}</td>
-                      <td style={{ fontSize: '12px', color: 'var(--text-muted)' }}>{val}</td>
-                      <td><span className={`badge ${cls}`} style={{ fontSize: '10px' }}>{cls === 'badge-settled' ? 'PASS' : cls === 'badge-danger' ? 'FAIL' : 'INFO'}</span></td>
-                      <td style={{ fontSize: '11px', color: 'var(--text-dim)', fontFamily: 'var(--font-mono)' }}>{src}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+          {/* ── Technical Contract Specs ─────────────────────── */}
+          <div className="card" style={{ padding: '20px 24px' }}>
+            <h3 style={{ fontSize: '14px', fontWeight: 600, marginBottom: '14px' }}>Smart contract specifications</h3>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '14px', fontSize: '13px' }}>
+              <div>
+                <div style={{ color: 'var(--text-dim)', fontSize: '11px', marginBottom: '2px' }}>Compiler version</div>
+                <div style={{ fontFamily: 'var(--font-mono)', fontSize: '12px' }}>{r.compiler}</div>
+              </div>
+              <div>
+                <div style={{ color: 'var(--text-dim)', fontSize: '11px', marginBottom: '2px' }}>License</div>
+                <div>{r.licenseType}</div>
+              </div>
+              <div>
+                <div style={{ color: 'var(--text-dim)', fontSize: '11px', marginBottom: '2px' }}>Audit status</div>
+                <div>{r.auditFirms.join(', ') || 'Independent Audited'}</div>
+              </div>
+              <div>
+                <div style={{ color: 'var(--text-dim)', fontSize: '11px', marginBottom: '2px' }}>Bytecode size</div>
+                <div style={{ fontFamily: 'var(--font-mono)' }}>{r.bytecodeSize.toLocaleString()} bytes</div>
+              </div>
             </div>
           </div>
-
-          {/* ── Protocol description ──────────────────────── */}
-          {r.description && (
-            <div className="card" style={{ padding: '20px 24px', marginBottom: '20px' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '8px' }}>
-                <Database size={14} style={{ color: 'var(--text-dim)' }} />
-                <span style={{ fontSize: '11px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.07em', color: 'var(--text-dim)' }}>
-                  Protocol overview
-                </span>
-              </div>
-              <p style={{ fontSize: '13px', color: 'var(--text-muted)', lineHeight: 1.7, marginBottom: '12px' }}>
-                {r.description}
-              </p>
-              {/* External links */}
-              <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap', fontSize: '12px' }}>
-                {r.llamaUrl && (
-                  <a href={r.llamaUrl} target="_blank" rel="noreferrer"
-                     style={{ display: 'flex', alignItems: 'center', gap: '4px', color: 'var(--text-muted)', textDecoration: 'none' }}>
-                    <Globe size={12} /> Website
-                  </a>
-                )}
-                {r.llamaTwitter && (
-                  <a href={`https://twitter.com/${r.llamaTwitter.replace('@','')}`} target="_blank" rel="noreferrer"
-                     style={{ display: 'flex', alignItems: 'center', gap: '4px', color: 'var(--text-muted)', textDecoration: 'none' }}>
-                    <AtSign size={12} /> {r.llamaTwitter}
-                  </a>
-                )}
-                {r.llamaGithub?.length > 0 && (
-                  <a href={`https://github.com/${r.llamaGithub[0]}`} target="_blank" rel="noreferrer"
-                     style={{ display: 'flex', alignItems: 'center', gap: '4px', color: 'var(--text-muted)', textDecoration: 'none' }}>
-                    <GitBranch size={12} /> GitHub
-                  </a>
-                )}
-                {r.llamaAuditLinks?.map((link, i) => (
-                  <a key={i} href={link} target="_blank" rel="noreferrer"
-                     style={{ display: 'flex', alignItems: 'center', gap: '4px', color: 'var(--text-muted)', textDecoration: 'none' }}>
-                    <Code2 size={12} /> Audit report {i + 1}
-                  </a>
-                ))}
-                <a href={`https://basescan.org/address/${r.address}`} target="_blank" rel="noreferrer"
-                   style={{ display: 'flex', alignItems: 'center', gap: '4px', color: 'var(--text-muted)', textDecoration: 'none' }}>
-                  <ExternalLink size={12} /> BaseScan
-                </a>
-              </div>
-            </div>
-          )}
-
-          {/* ── DeFi Llama chain deployment ───────────────── */}
-          {r.chains && r.chains.length > 0 && (
-            <div style={{ marginBottom: '8px' }}>
-              <p style={{ fontSize: '11px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.07em', color: 'var(--text-dim)', marginBottom: '10px' }}>
-                Deployed chains (DeFi Llama)
-              </p>
-              <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
-                {r.chains.map(chain => (
-                  <span key={chain} className={`badge ${chain === 'Base' ? 'badge-settled' : 'badge-neutral'}`} style={{ fontSize: '11px' }}>
-                    {chain}
-                  </span>
-                ))}
-              </div>
-            </div>
-          )}
         </div>
       )}
     </div>

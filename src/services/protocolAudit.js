@@ -10,13 +10,13 @@ const RPC_ENDPOINTS = [
   'https://base-rpc.publicnode.com',
 ].filter(Boolean);
 
-const BASESCAN_API = 'https://api.basescan.org/api';
 const BASESCAN_KEY = import.meta.env.VITE_BASESCAN_API_KEY || '';
 const LLAMA_API    = 'https://api.llama.fi';
 const LLAMA_YIELDS = 'https://yields.llama.fi/pools';
 
 // In-Memory Client Cache to prevent verification flapping across scans
 const auditClientCache = new Map();
+const featuredStatsCache = new Map();
 
 // ── Known Base protocol contracts with curated metadata ──────────────────────
 export const KNOWN_BASE_PROTOCOLS = {
@@ -27,7 +27,6 @@ export const KNOWN_BASE_PROTOCOLS = {
     auditFirms: ['Spearbit', 'Code4rena'],
     description: 'Central swap router for Aerodrome Finance, the primary liquidity hub on Base. Fork of Velodrome V2 with ve(3,3) tokenomics.',
     adminMsig: true, launched: '2023-08',
-    defaultTvl: '$1.42B',
   },
   '0x420dd381b31aef6683db6b902084cb0ffece40da': {
     name: 'Aerodrome Voter', protocol: 'Aerodrome Finance', type: 'Governance / ve(3,3)',
@@ -35,7 +34,6 @@ export const KNOWN_BASE_PROTOCOLS = {
     auditFirms: ['Spearbit'],
     description: 'veAERO governance voter. Controls AERO emissions routing and fee distribution across liquidity pools.',
     adminMsig: true, launched: '2023-08',
-    defaultTvl: '$1.42B',
   },
   '0x940181a94a35a4569e4529a3cdfb74e38fd98631': {
     name: 'Aerodrome Token (AERO)', protocol: 'Aerodrome Finance', type: 'Governance Token',
@@ -43,7 +41,6 @@ export const KNOWN_BASE_PROTOCOLS = {
     auditFirms: ['Spearbit'],
     description: 'AERO is the native governance and incentive token of Aerodrome Finance. Can be locked as veAERO for voting and fee sharing.',
     adminMsig: true, launched: '2023-08',
-    defaultTvl: '$850M',
   },
 
   // ── Moonwell ──────────────────────────────────────────────────────────
@@ -53,7 +50,6 @@ export const KNOWN_BASE_PROTOCOLS = {
     auditFirms: ['Halborn', 'Zellic'],
     description: 'Moonwell lending protocol comptroller. Fork of Compound V2 with governance by WELL token. Manages collateral factors and liquidations.',
     adminMsig: true, launched: '2023-08',
-    defaultTvl: '$180M',
   },
   '0xedc817a28e8b93b03976fbd4a3ddbc9f7d176c22': {
     name: 'Moonwell mUSDC', protocol: 'Moonwell', type: 'Lending / Money Market',
@@ -61,7 +57,6 @@ export const KNOWN_BASE_PROTOCOLS = {
     auditFirms: ['Halborn', 'Zellic'],
     description: 'Moonwell money market for USDC on Base. Suppliers earn lending APY; borrowers draw against posted collateral.',
     adminMsig: true, launched: '2023-08',
-    defaultTvl: '$95M',
   },
   '0xff8adec2221f9f4d8dfbafa6b9a297d17603493d': {
     name: 'Moonwell Token (WELL)', protocol: 'Moonwell', type: 'Governance Token',
@@ -69,7 +64,6 @@ export const KNOWN_BASE_PROTOCOLS = {
     auditFirms: ['Halborn'],
     description: 'WELL is the governance token for Moonwell. Used for voting on risk parameters and market additions.',
     adminMsig: true, launched: '2023-08',
-    defaultTvl: '$40M',
   },
 
   // ── Compound V3 ───────────────────────────────────────────────────────
@@ -79,7 +73,6 @@ export const KNOWN_BASE_PROTOCOLS = {
     auditFirms: ['OpenZeppelin', 'ChainSecurity'],
     description: 'Compound III single-asset USDC lending market on Base. Isolated risk model with Chainlink oracles and multi-collateral support.',
     adminMsig: true, launched: '2023-08',
-    defaultTvl: '$110M',
   },
   '0x46e6b214ba08a2ea10c07c45059631b64d4bf52e': {
     name: 'Compound III WETH', protocol: 'Compound V3', type: 'Lending Protocol',
@@ -87,7 +80,6 @@ export const KNOWN_BASE_PROTOCOLS = {
     auditFirms: ['OpenZeppelin', 'ChainSecurity'],
     description: 'Compound III single-asset WETH lending market on Base. Enables borrowing WETH against selected crypto collateral.',
     adminMsig: true, launched: '2023-08',
-    defaultTvl: '$65M',
   },
 
   // ── Aave V3 ───────────────────────────────────────────────────────────
@@ -97,7 +89,6 @@ export const KNOWN_BASE_PROTOCOLS = {
     auditFirms: ['Certik', 'OpenZeppelin', 'Sigma Prime'],
     description: 'Aave V3 main lending pool on Base. Industry-standard multi-asset liquidity market with high capital efficiency.',
     adminMsig: true, launched: '2023-08',
-    defaultTvl: '$480M',
   },
 
   // ── Core Base Tokens & Ecosystem Assets ────────────────────────────────
@@ -107,7 +98,6 @@ export const KNOWN_BASE_PROTOCOLS = {
     auditFirms: ['Trail of Bits', 'Certik'],
     description: 'Native USDC issued by Circle on Base. Upgradeable proxy architecture with Circle reserves backing.',
     adminMsig: true, launched: '2023-08',
-    defaultTvl: '$3.2B',
   },
   '0x4200000000000000000000000000000000000006': {
     name: 'Wrapped Ether (WETH)', protocol: 'Base / Ethereum', type: 'Wrapped Native Token',
@@ -115,7 +105,6 @@ export const KNOWN_BASE_PROTOCOLS = {
     auditFirms: ['OpenZeppelin'],
     description: 'Canonical WETH contract on Base. 1:1 backed with native Ether, immutable, zero admin keys.',
     adminMsig: false, launched: '2023-07',
-    defaultTvl: '$1.1B',
   },
   '0x0b3e328455c4059eeb9e3f84b5543f74e24e7e1b': {
     name: 'Virtual Protocol (VIRTUAL)', protocol: 'Virtuals Protocol', type: 'AI Agent Token',
@@ -123,7 +112,6 @@ export const KNOWN_BASE_PROTOCOLS = {
     auditFirms: ['Salus Security'],
     description: 'Autonomous AI co-ownership and agent infrastructure token on Base Mainnet.',
     adminMsig: true, launched: '2024-01',
-    defaultTvl: '$250M',
   },
   '0x4ed4e862860bed51a9570b96d89af5e1b0efefed': {
     name: 'Degen (DEGEN)', protocol: 'Degen', type: 'ERC-20 Token',
@@ -131,7 +119,6 @@ export const KNOWN_BASE_PROTOCOLS = {
     auditFirms: ['OpenZeppelin Standard'],
     description: 'DEGEN is the native ERC-20 community and tipping token originally launched on Base, with deep liquidity across Base DEXes.',
     adminMsig: true, launched: '2024-01',
-    defaultTvl: '$45M',
   },
   '0xcbB7C0000aB88B473b1f5aFd9ef808440eed33Bf': {
     name: 'Coinbase Wrapped BTC (cbBTC)', protocol: 'Coinbase', type: 'Wrapped Asset',
@@ -139,7 +126,6 @@ export const KNOWN_BASE_PROTOCOLS = {
     auditFirms: ['OpenZeppelin'],
     description: '1:1 Bitcoin backed token issued by Coinbase on Base Mainnet.',
     adminMsig: true, launched: '2024-09',
-    defaultTvl: '$600M',
   },
 };
 
@@ -175,6 +161,79 @@ function formatUsd(val) {
   if (val >= 1e6) return `$${(val / 1e6).toFixed(2)}M`;
   if (val >= 1e3) return `$${(val / 1e3).toFixed(1)}k`;
   return `$${val.toFixed(2)}`;
+}
+
+// ── Live Stats Fetcher for Featured Protocols Table ───────────────────────────
+export async function fetchLiveProtocolStats(address) {
+  const addr = address.toLowerCase().trim();
+  if (featuredStatsCache.has(addr)) {
+    return featuredStatsCache.get(addr);
+  }
+
+  const known = KNOWN_BASE_PROTOCOLS[addr] || null;
+  let liveTvl = null;
+  let dexLiquidity = null;
+  let marketCap = null;
+  let volume24h = null;
+
+  // 1. Probe DexScreener
+  try {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), 3500);
+    const dexRes = await fetch(`https://api.dexscreener.com/latest/dex/tokens/${addr}`, { signal: controller.signal });
+    clearTimeout(timer);
+
+    if (dexRes.ok) {
+      const dexData = await dexRes.json();
+      if (dexData.pairs && dexData.pairs.length > 0) {
+        const basePairs = dexData.pairs.filter(p => p.chainId === 'base');
+        const primary = basePairs.length > 0 ? basePairs[0] : dexData.pairs[0];
+        if (primary) {
+          dexLiquidity = primary.liquidity?.usd || null;
+          marketCap = primary.marketCap || primary.fdv || null;
+          volume24h = primary.volume?.h24 || null;
+          if (dexLiquidity && dexLiquidity > 0) {
+            liveTvl = formatUsd(dexLiquidity);
+          } else if (marketCap && marketCap > 0) {
+            liveTvl = formatUsd(marketCap);
+          }
+        }
+      }
+    }
+  } catch {}
+
+  // 2. Probe DeFi Llama protocol slug if protocol TVL is primary
+  const slug = known?.defillamaSlug;
+  if (slug) {
+    try {
+      const controller = new AbortController();
+      const timer = setTimeout(() => controller.abort(), 3000);
+      const res = await fetch(`${LLAMA_API}/protocol/${slug}`, { signal: controller.signal });
+      clearTimeout(timer);
+
+      if (res.ok) {
+        const data = await res.json();
+        if (data.tvl) {
+          const val = data.chainTvls?.Base?.tvl || data.tvl;
+          if (val > 0) {
+            if (!dexLiquidity || known?.type.includes('Lending') || known?.type.includes('DEX')) {
+              liveTvl = formatUsd(val);
+            }
+          }
+        }
+      }
+    } catch {}
+  }
+
+  const result = {
+    tvl: liveTvl || 'N/A',
+    dexLiquidity: dexLiquidity ? formatUsd(dexLiquidity) : null,
+    marketCap: marketCap ? formatUsd(marketCap) : null,
+    volume24h: volume24h ? formatUsd(volume24h) : null,
+  };
+
+  featuredStatsCache.set(addr, result);
+  return result;
 }
 
 // ── Type Selectors ────────────────────────────────────────────────────────────
@@ -367,7 +426,7 @@ export async function auditProtocol(address) {
           implementationAddress: result.implementationAddress,
           adminMsig: isVerified && !isProxy,
           bytecodeSize: result.bytecodeSize || 14849,
-          tvl: result.tvl || known?.defaultTvl || 'N/A',
+          tvl: result.tvl || 'N/A',
           dexLiquidity: result.dexLiquidity,
           marketCap: result.marketCap,
           volume24h: result.volume24h,
@@ -545,12 +604,12 @@ export async function auditProtocol(address) {
   } catch {}
 
   // 5. Real-Time Liquidity / TVL Discovery via DexScreener & DeFi Llama
-  let tvl = known?.defaultTvl || null;
+  let tvl = null;
   let dexLiquidity = null;
   let dexMarketCap = null;
   let dex24hVolume = null;
 
-  // Try DexScreener
+  // 5a. Probe DexScreener
   try {
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), 3500);
@@ -576,12 +635,12 @@ export async function auditProtocol(address) {
     }
   } catch {}
 
-  // Try DeFi Llama Protocol Slug
+  // 5b. Probe DeFi Llama Protocol Slug
   const slug = known?.defillamaSlug;
-  if (slug && !tvl) {
+  if (slug) {
     try {
       const controller = new AbortController();
-      const timer = setTimeout(() => controller.abort(), 2500);
+      const timer = setTimeout(() => controller.abort(), 3000);
       const res = await fetch(`${LLAMA_API}/protocol/${slug}`, { signal: controller.signal });
       clearTimeout(timer);
 
@@ -589,7 +648,11 @@ export async function auditProtocol(address) {
         const data = await res.json();
         if (data.tvl) {
           const val = data.chainTvls?.Base?.tvl || data.tvl;
-          tvl = formatUsd(val);
+          if (val > 0) {
+            if (!dexLiquidity || !isToken) {
+              tvl = formatUsd(val);
+            }
+          }
         }
       }
     } catch {}
