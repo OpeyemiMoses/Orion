@@ -268,12 +268,50 @@ export default function ProtocolAuditor() {
                   {r.sourceVerified && <span className="badge badge-settled">Code Verified</span>}
                   {r.isProxy && <span className="badge badge-warn">Upgradeable Architecture</span>}
                 </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap', marginTop: '6px' }}>
                   <span className="addr" style={{ fontSize: '12px' }}>{r.address}</span>
-                  <a href={`https://basescan.org/address/${r.address}`} target="_blank" rel="noreferrer"
-                     style={{ color: 'var(--text-dim)', display: 'flex' }}>
-                    <ExternalLink size={12} />
+                  <a
+                    href={`https://basescan.org/${r.type?.includes('Token') ? 'token' : 'address'}/${r.address}`}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="btn btn-outline"
+                    style={{
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '5px',
+                      padding: '3px 8px',
+                      fontSize: '11px',
+                      fontWeight: 600,
+                      color: 'var(--accent-blue, #2563eb)',
+                      borderColor: 'rgba(37, 99, 235, 0.3)',
+                      borderRadius: '5px',
+                      textDecoration: 'none'
+                    }}
+                    title="View verified contract on BaseScan"
+                  >
+                    <ExternalLink size={11} /> BaseScan Explorer ↗
                   </a>
+                  {r.dexLiquidity && (
+                    <a
+                      href={`https://dexscreener.com/base/${r.address}`}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="btn btn-ghost"
+                      style={{
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: '4px',
+                        padding: '3px 8px',
+                        fontSize: '11px',
+                        color: 'var(--text-muted)',
+                        borderRadius: '5px',
+                        textDecoration: 'none'
+                      }}
+                      title="View live trading chart on DexScreener"
+                    >
+                      <LineChart size={11} /> DexScreener ↗
+                    </a>
+                  )}
                 </div>
               </div>
               {r.tvl && r.tvl !== 'N/A' && (
@@ -489,7 +527,7 @@ export default function ProtocolAuditor() {
           {/* ── Technical Contract Specs ─────────────────────── */}
           <div className="card" style={{ padding: '20px 24px' }}>
             <h3 style={{ fontSize: '14px', fontWeight: 600, marginBottom: '14px' }}>Smart contract specifications</h3>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '14px', fontSize: '13px' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '14px', fontSize: '13px' }}>
               <div>
                 <div style={{ color: 'var(--text-dim)', fontSize: '11px', marginBottom: '2px' }}>Compiler version</div>
                 <div style={{ fontFamily: 'var(--font-mono)', fontSize: '12px' }}>{r.compiler}</div>
@@ -505,6 +543,19 @@ export default function ProtocolAuditor() {
               <div>
                 <div style={{ color: 'var(--text-dim)', fontSize: '11px', marginBottom: '2px' }}>Bytecode size</div>
                 <div style={{ fontFamily: 'var(--font-mono)' }}>{r.bytecodeSize.toLocaleString()} bytes</div>
+              </div>
+              <div>
+                <div style={{ color: 'var(--text-dim)', fontSize: '11px', marginBottom: '2px' }}>Block explorer</div>
+                <div>
+                  <a
+                    href={`https://basescan.org/${r.type?.includes('Token') ? 'token' : 'address'}/${r.address}`}
+                    target="_blank"
+                    rel="noreferrer"
+                    style={{ color: 'var(--accent-blue)', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: '4px', fontSize: '12px', fontWeight: 600 }}
+                  >
+                    BaseScan Token Tracker <ExternalLink size={11} />
+                  </a>
+                </div>
               </div>
             </div>
           </div>
