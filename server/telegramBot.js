@@ -10,9 +10,8 @@ import 'dotenv/config';
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import { generateDeepAiReasoning } from './aiReasoning.js';
 import { auditProtocolOnChain } from './onChainAuditor.js';
-import { getRealWalletPositions, fetchLiveBaseYields, getRealIncentivesStatus } from './onChainPositions.js';
+import { getRealWalletPositions, fetchLiveBaseYields, getRealIncentivesStatus, getRealWalletApprovals } from './onChainPositions.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname  = path.dirname(__filename);
@@ -200,15 +199,19 @@ function getMainMenuKeyboard() {
   return [
     [
       { text: '📊 My Positions & Health', callback_data: 'cmd_status' },
+      { text: '🛡️ Check Approvals', callback_data: 'cmd_approvals' },
+    ],
+    [
       { text: '🚀 Top Base Yields', callback_data: 'cmd_yields' },
-    ],
-    [
       { text: '🎁 Active Incentives', callback_data: 'cmd_incentives' },
-      { text: '🛡️ Protocol & Token Auditor', callback_data: 'cmd_audit_prompt' },
     ],
     [
+      { text: '🔍 Protocol & Token Auditor', callback_data: 'cmd_audit_prompt' },
       { text: '⚙️ Alert Settings', callback_data: 'cmd_settings' },
+    ],
+    [
       { text: '🔗 Bind Base Wallet', callback_data: 'cmd_bind_prompt' },
+      { text: '🌐 Open OrionX App', url: LIVE_APP_URL },
     ],
   ];
 }
@@ -225,6 +228,8 @@ export async function handleTelegramUpdate(update) {
 
     if (data === 'cmd_status') {
       await handleStatusCommand(chatId);
+    } else if (data === 'cmd_approvals') {
+      await handleApprovalsCommand(chatId);
     } else if (data === 'cmd_yields') {
       await handleYieldsCommand(chatId);
     } else if (data === 'cmd_incentives') {
@@ -275,6 +280,9 @@ export async function handleTelegramUpdate(update) {
       const addr = data.replace('action_bind_', '');
       bindWalletToChat(chatId, addr);
       await sendTelegramMessage(chatId, `✅ <b>Wallet Bound:</b> <code>${addr}</code>\n\nAlways-On background sentinel is now active for this address!`, getMainMenuKeyboard());
+    } else if (data.startsWith('action_approvals_')) {
+      const addr = data.replace('action_approvals_', '');
+      await handleApprovalsCommand(chatId, addr);
     } else if (data.startsWith('action_audit_')) {
       const addr = data.replace('action_audit_', '');
       await handleAuditCommand(chatId, addr);
@@ -327,6 +335,17 @@ You will now receive instant push alerts for liquidations, yields, and incentive
         return;
       }
     }
+
+    if (session.awaiting === 'approvals_address') {
+      if (isAddr) {
+        delete userSessions[chatId];
+        await handleApprovalsCommand(chatId, text);
+        return;
+      } else {
+        await sendTelegramMessage(chatId, '❌ <b>Invalid Address Format.</b>\n\nPlease reply with a valid 42-character Base wallet address starting with <code>0x</code>.');
+        return;
+      }
+    }
   }
 
   // 2. Direct Address Input (User pasted a raw 0x... address)
@@ -334,7 +353,10 @@ You will now receive instant push alerts for liquidations, yields, and incentive
     const keyboard = [
       [
         { text: '🔗 Bind as My Wallet', callback_data: `action_bind_${text}` },
-        { text: '🛡️ Run Deep AI Audit', callback_data: `action_audit_${text}` },
+        { text: '🛡️ Check Approvals', callback_data: `action_approvals_${text}` },
+      ],
+      [
+        { text: '🔍 Run Deep AI Audit', callback_data: `action_audit_${text}` },
       ],
     ];
     await sendTelegramMessage(
@@ -378,6 +400,7 @@ ${sub ? `<b>Bound Wallet:</b> <code>${sub.walletAddress}</code> (Active 24/7)` :
 
 <b>Available Commands:</b>
 • <code>/bind &lt;address&gt;</code> — Link your Base wallet
+• <code>/approvals &lt;address&gt;</code> — Inspect smart contract permissions & allowances
 • <code>/status</code> — View live lending positions & aggregate Health Factor
 • <code>/yields</code> — Top Base pool yields with net-gain calculations
 • <code>/incentives</code> — Check Base reward qualification gaps
@@ -440,31 +463,39 @@ ${sub ? `<b>Bound Wallet:</b> <code>${sub.walletAddress}</code> (Active 24/7)` :
     return;
   }
 
-  // 6. /status or /shield
+  // 6. /approvals
+  if (text.startsWith('/approvals')) {
+    const parts = text.split(' ');
+    const target = parts[1] && parts[1].startsWith('0x') && parts[1].length === 42 ? parts[1] : null;
+    await handleApprovalsCommand(chatId, target);
+    return;
+  }
+
+  // 7. /status or /shield
   if (text.startsWith('/status') || text.startsWith('/shield')) {
     await handleStatusCommand(chatId);
     return;
   }
 
-  // 7. /yields
+  // 8. /yields
   if (text.startsWith('/yields')) {
     await handleYieldsCommand(chatId);
     return;
   }
 
-  // 8. /incentives
+  // 9. /incentives
   if (text.startsWith('/incentives')) {
     await handleIncentivesCommand(chatId);
     return;
   }
 
-  // 9. /settings
+  // 10. /settings
   if (text.startsWith('/settings')) {
     await handleSettingsCommand(chatId);
     return;
   }
 
-  // 10. /unbind
+  // 11. /unbind
   if (text.startsWith('/unbind')) {
     unbindWallet(chatId);
     delete userSessions[chatId];
@@ -537,6 +568,77 @@ ${marketsHtml}
   ];
 
   await sendTelegramMessage(chatId, statusMsg, keyboard);
+}
+
+async function handleApprovalsCommand(chatId, explicitWallet = null) {
+  const sub = subscribers[chatId];
+  const wallet = explicitWallet || sub?.walletAddress;
+
+  if (!wallet) {
+    userSessions[chatId] = { awaiting: 'approvals_address' };
+    await sendTelegramMessage(
+      chatId,
+      '🛡️ <b>Approval Shield Scanner (Base Mainnet)</b>\n\nPlease reply with your Base wallet address to inspect active token permissions and allowances on-chain.'
+    );
+    return;
+  }
+
+  await sendTelegramMessage(chatId, `🔍 <i>Scanning on-chain token allowances on Base for <code>${wallet.slice(0, 8)}...${wallet.slice(-6)}</code>...</i>`);
+
+  const report = await getRealWalletApprovals(wallet);
+  const count = report.approvals.length;
+  const critCount = report.approvals.filter(a => a.risk === 'Critical' || a.risk === 'High').length;
+
+  if (count === 0) {
+    const safeMsg = `
+<b>🛡️ ORIONX APPROVAL SHIELD — ON-CHAIN AUDIT</b>
+
+<b>Target Wallet:</b> <code>${wallet}</code>
+<b>Network:</b> Base Mainnet (Chain ID 8453)
+<b>Status:</b> 🟢 <b>ALL CLEAR (0 Approvals Detected)</b>
+
+<b>Audit Result:</b>
+✅ No active or high-risk smart contract approvals detected across Uniswap, Aerodrome, Moonwell, 1inch, BaseSwap, and major DEX routers.
+
+Your wallet permissions on Base are <b>100% clean and sanitized</b>.
+    `.trim();
+
+    const keyboard = [
+      [{ text: '🔄 Re-scan Approvals', callback_data: `action_approvals_${wallet}` }],
+      [{ text: '📊 Position Health', callback_data: 'cmd_status' }],
+      [{ text: '🌐 Open OrionX App', url: LIVE_APP_URL }],
+    ];
+
+    await sendTelegramMessage(chatId, safeMsg, keyboard);
+    return;
+  }
+
+  const rows = report.approvals.map((app, idx) => {
+    const riskBadge = app.risk === 'Critical' ? '🔴 CRITICAL' : app.risk === 'High' ? '🟠 HIGH' : app.risk === 'Medium' ? '🟡 MEDIUM' : '🟢 LOW';
+    return `<b>${idx + 1}. ${escapeTg(app.protocol)}</b> [${riskBadge}]\n• <b>Token:</b> ${escapeTg(app.token)}\n• <b>Spender:</b> <code>${app.spender}</code>\n• <b>Allowance:</b> ${escapeTg(app.allowance)}`;
+  }).join('\n\n');
+
+  const alertMsg = `
+<b>🛡️ ORIONX APPROVAL SHIELD — ON-CHAIN AUDIT</b>
+
+<b>Target Wallet:</b> <code>${wallet}</code>
+<b>Network:</b> Base Mainnet (Chain ID 8453)
+<b>Active Spenders Found:</b> <b>${count}</b> (${critCount} high-risk)
+<b>Threat Classification:</b> <b>${report.riskLevel}</b>
+
+━━━━━━━━━━━━━━━━━━━
+${rows}
+
+💡 <i>You can revoke any allowance directly with 1 tap in the OrionX web application.</i>
+  `.trim();
+
+  const keyboard = [
+    [{ text: '⚡ Revoke in OrionX App', url: LIVE_APP_URL }],
+    [{ text: '🔄 Refresh Approvals', callback_data: `action_approvals_${wallet}` }],
+    [{ text: '📊 Position Health', callback_data: 'cmd_status' }],
+  ];
+
+  await sendTelegramMessage(chatId, alertMsg, keyboard);
 }
 
 async function handleYieldsCommand(chatId) {

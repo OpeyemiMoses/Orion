@@ -356,3 +356,83 @@ export async function getRealIncentivesStatus(walletAddress) {
 
   return res;
 }
+
+// ── Live On-Chain Token Allowance Scanner for Base Mainnet ────────────────────
+export async function getRealWalletApprovals(walletAddress) {
+  const addr = (walletAddress || '').toLowerCase();
+  const summary = {
+    address: addr,
+    approvals: [],
+    riskScore: 0,
+    riskLevel: 'Minimal Risk',
+  };
+
+  if (!addr || !/^0x[a-f0-9]{40}$/i.test(addr)) return summary;
+
+  const TOKENS = [
+    { symbol: 'USDC', address: '0x833589fcd6edb6e08f4c7c32d4f71b54bda02913', decimals: 6 },
+    { symbol: 'WETH', address: '0x4200000000000000000000000000000000000006', decimals: 18 },
+    { symbol: 'cbBTC', address: '0xcbb7c0000ab88b473b1f5afd9ef808440eed33bf', decimals: 8 },
+    { symbol: 'AERO', address: '0x940181a94a35a4569e4529a3cdfb74e38fd98631', decimals: 18 },
+    { symbol: 'DAI', address: '0x50c5725949a6f0c72e6c4a641f24049a917db0cb', decimals: 18 },
+  ];
+
+  const SPENDERS = [
+    { name: 'Uniswap v3 Router', address: '0x2626664c2603336E57B271c5C0b26F421741e481', verified: true, risk: 'Low' },
+    { name: 'Aerodrome Router', address: '0xcF77a3Ba9A5CA399B7c97c749566343833341fd7', verified: true, risk: 'Low' },
+    { name: 'Moonwell Comptroller', address: '0xfbb21d0380beE3312B33c4353c8936a0F13EF26C', verified: true, risk: 'Low' },
+    { name: '1inch Router v5', address: '0x111111125421cA6dc452d289314280a0f8842A65', verified: true, risk: 'Low' },
+    { name: 'BaseSwap Router', address: '0xd0e0ba2d696fd0b5c7fd509a984c8cbef5e7e63', verified: true, risk: 'Medium' },
+  ];
+
+  try {
+    const checks = [];
+    for (const token of TOKENS) {
+      for (const spender of SPENDERS) {
+        checks.push({ token, spender });
+      }
+    }
+
+    const results = await Promise.allSettled(
+      checks.map(async ({ token, spender }) => {
+        // allowance(owner, spender) -> 0xdd62ed3e
+        const data = '0xdd62ed3e' + pad(addr) + pad(spender.address);
+        const res = await call(token.address, data);
+        if (!res || res === '0x') return null;
+        const val = decodeUint(res);
+        if (val <= 0n) return null;
+
+        const isUnlimited = val >= (1n << 128n);
+        let formatted = 'Unlimited';
+        if (!isUnlimited) {
+          const num = Number(val) / Math.pow(10, token.decimals);
+          formatted = `${num.toLocaleString(undefined, { maximumFractionDigits: 4 })} ${token.symbol}`;
+        }
+
+        return {
+          protocol: spender.name,
+          spender: spender.address,
+          token: token.symbol,
+          tokenAddress: token.address,
+          allowance: formatted,
+          isUnlimited,
+          risk: spender.risk || 'Low',
+          verifiedContract: spender.verified,
+        };
+      })
+    );
+
+    const active = results
+      .filter(r => r.status === 'fulfilled' && r.value !== null)
+      .map(r => r.value);
+
+    summary.approvals = active;
+    const critCount = active.filter(a => a.risk === 'Critical' || a.risk === 'High').length;
+    summary.riskScore = critCount > 0 ? 75 : active.length > 0 ? 25 : 0;
+    summary.riskLevel = critCount > 0 ? 'High Risk' : active.length > 0 ? 'Moderate Risk' : 'Minimal Risk';
+  } catch (err) {
+    console.warn('[OnChainPositions] Error scanning approvals:', err.message);
+  }
+
+  return summary;
+}
